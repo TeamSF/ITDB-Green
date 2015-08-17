@@ -36,6 +36,8 @@ if ($authstatus)
 }
 ?>
 
+<link rel="stylesheet" href="css/net_dns2.css" type="text/css">
+
 <link rel="stylesheet" href="css/datatable.css" type="text/css">
 <link rel="stylesheet" href="css/TableTools_JUI.css" type="text/css">
 <link rel="stylesheet" href="css/ColVis.css" type="text/css">
