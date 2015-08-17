@@ -110,19 +110,6 @@ echo "\n<h1>".t("Settings")."</h1>\n";
       <?php if ($settings['currency']=="&#8381;") $s="SELECTED"; else $s="" ?>
       <option <?php echo $s?> title='Rubel' value='<?php echo htmlentities("&#8381;");?>'>&#8381;</option>
 
-    <tr><td class="tdt"><?php te("Theme"); ?></td><td>
-    <select name='theme'>
-      <?php if ($settings['theme']=="default") $s="SELECTED"; else $s="" ;
-      echo "<option $s value='default'>Default (Blue)</option>";
-      foreach (glob('css/itdb-themes/*', GLOB_ONLYDIR) as $themedir) {
-        $themedir=str_replace('css/itdb-themes/', '', $themedir);
-        if ($settings['theme']=="$themedir") $s="SELECTED"; else $s="" ;
-        echo "<option $s value='$themedir'>$themedir</option>\n";
-      } ?>
-    </select>
-    </td>
-    </tr>
-
     </select></td></tr>
     <tr><td class="tdt"><?php te("Interface Language")?></td><td>
     <select  name='lang'>
@@ -198,6 +185,19 @@ echo "\n<h1>".t("Settings")."</h1>\n";
     <tr><td class="tdt"><?php te("LDAP User filter");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_getusers_filter' value="<?php echo $settings['ldap_getusers_filter']?>"> e.g.: (&amp; (uid=*) (IsActive=TRUE))</td></tr>
 
+    <tr><td colspan=2><h3><?php te("Theme Settings"); ?></h3></td></tr>
+    <tr><td class="tdt"><?php te("Theme:"); ?></td><td>
+    <select name='theme'>
+      <?php if ($settings['theme']=="default") $s="SELECTED"; else $s="" ;
+      echo "<option $s value='default'>Default (Blue)</option>";
+      foreach (glob('css/itdb-themes/*', GLOB_ONLYDIR) as $themedir) {
+        $themedir=str_replace('css/itdb-themes/', '', $themedir);
+        if ($settings['theme']=="$themedir") $s="SELECTED"; else $s="" ;
+        echo "<option $s value='$themedir'>$themedir</option>\n";
+      } ?>
+    </select>
+    </td>
+    </tr>
 
 <tr>
 <td colspan=2>
