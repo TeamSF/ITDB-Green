@@ -204,25 +204,34 @@ if (!$demomode ) {
        $password=$_POST['authpassword'];
 
         if ($settings['useldap'] && $username != 'admin') {
-            $r=connect_to_ldap_server($settings['ldap_server'],$username,$password,$settings['ldap_dn']);
-            //echo "HERE. r=".var_dump($r)."\n";
-            if ($r == false) {
-                $authstatus=0;
-                $authmsg="Wrong Password";
+            $ldap_authmsg=0;
+            $ldap_allowed_users = explode(',',$settings['ldap_allowed_logins']);
+            if (in_array($username, $ldap_allowed_users)) {
+                $r=connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$username,$password,$settings['ldap_dn']);
+                //echo "HERE. r=".var_dump($r)."\n";
+                if ($r == false) {
+                    $authstatus=0;
+                    $authmsg="Wrong Password";
+                }
+                else {
+                     $rnd=mt_rand(); //create a random
+                     $u=getuserbyname($username);
+                     if ($u==-1) { //user not found, it's an LDAP user, add him
+                         $usertype = $settings['ldap_new_user_type'];
+                         db_execute2($dbh,
+                             "INSERT into users (username,cookie1,usertype) values (:username,:cookie1,:usertype)",
+                             array('username'=>$username,'cookie1'=>$rnd,'usertype'=>$usertype));
+                     }
+                     db_exec($dbh,"UPDATE users set cookie1='$rnd' where username='$username'",1,1);
+                     setcookie("itdbcookie1",$rnd, time()+3600*24*2,$wscriptdir); //random number set for two days
+                     setcookie("itdbuser",$username, time()+3600*24*60,$wscriptdir); //username
+                     $authstatus=1;
+                     $authmsg="User Authenticated";
+                }
             }
             else {
-                 $rnd=mt_rand(); //create a random
-                 $u=getuserbyname($username);
-                 if ($u==-1) { //user not found, it's an LDAP user, add him
-                     db_execute2($dbh,
-                         "INSERT into users (username,cookie1,usertype) values (:username,:cookie1,:usertype)",
-                         array('username'=>$username,'cookie1'=>$rnd,'usertype'=>2));
-                 }
-                 db_exec($dbh,"UPDATE users set cookie1='$rnd' where username='$username'",1,1);
-                 setcookie("itdbcookie1",$rnd, time()+3600*24*2,$wscriptdir); //random number set for two days
-                 setcookie("itdbuser",$username, time()+3600*24*60,$wscriptdir); //username
-                 $authstatus=1;
-                 $authmsg="User Authenticated";
+                $authstatus=0;
+                $ldap_authmsg="Login not permitted";
             }
         }
 
@@ -251,6 +260,10 @@ if (!$demomode ) {
            else { //wrong password
              $authstatus=0;
              $authmsg="Wrong Password";
+             //Show login not permitted instead of "Wrong password"
+             if($ldap_authmsg) {
+                 $authmsg = $ldap_authmsg;
+             }
            }
         }
 

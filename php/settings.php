@@ -25,6 +25,9 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
   "', currency='".$_POST['currency'].
   "', useldap='".$_POST['useldap'].
   "', ldap_server='".trim($_POST['ldap_server']).
+  "', ldap_port='".trim($_POST['ldap_port']).
+  "', ldap_allowed_logins='".trim($_POST['ldap_allowed_logins']).
+  "', ldap_new_user_type='".$_POST['ldap_new_user_type'].
   "', ldap_dn='".trim($_POST['ldap_dn']).
   "', ldap_getusers='".trim($_POST['ldap_getusers']).
   "', ldap_getusers_filter='".trim($_POST['ldap_getusers_filter']).
@@ -164,6 +167,7 @@ echo "\n<h1>".t("Settings")."</h1>\n";
     <tr><td class="tdt" title='Provide the full path to the switches directory within the SwitchMap directory.'><?php te("Path To Switchmap");?>:</td><td><input  class='input2 ' size=20 type=text name='switchmapdir' value="<?php echo $settings['switchmapdir']?>"></td></tr>
 
 -->
+    <tr><td colspan=2><h3><?php te("LDAP Login Settings"); ?></h3></td></tr>
     <tr><td class="tdt"><?php te("Use LDAP");?>:</td> 
         <td><select  name='useldap'>
         <?php
@@ -177,8 +181,23 @@ echo "\n<h1>".t("Settings")."</h1>\n";
 
     <tr><td class="tdt"><?php te("LDAP Server");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_server' value="<?php echo $settings['ldap_server']?>"> e.g.: ldap.mydomain.com</td></tr>
+    <tr><td class="tdt"><?php te("LDAP Port");?>:</td>
+        <td><input  class='input2 ' size=20 type=text name='ldap_port' value="<?php echo $settings['ldap_port']?>"> e.g.: 389 (LDAP default port) or 3268 (for Active Directory)</td></tr>
     <tr><td class="tdt"><?php te("LDAP DN");?>:</td> 
-        <td><input  class='input2 ' size=20 type=text name='ldap_dn' value="<?php echo $settings['ldap_dn']?>"> For user authentication.e.g.: ou=People,dc=mydomain,dc=com</td></tr>
+        <td><input  class='input2 ' size=20 type=text name='ldap_dn' value="<?php echo $settings['ldap_dn']?>"> For user authentication.e.g.: ou=People,dc=mydomain,dc=com OR @mydomain.com</td></tr>
+    <tr><td class="tdt"><?php te("LDAP Allowed Logins");?>:</td>
+        <td><input  class='input2 ' size=20 type=text name='ldap_allowed_logins' value="<?php echo $settings['ldap_allowed_logins']?>"> Usernames which are allowed to logon at ITDB via LDAP, e.g. alice, bob, charlie (empty = all users)</td></tr>
+    <tr><td class="tdt"><?php te("LDAP New User Type");?>:</td>
+        <td><select  name='ldap_new_user_type'>
+        <?php
+        if ($settings['ldap_new_user_type']==0) $s0='SELECTED';
+        else $s0='';
+        ?>
+        <option value=2><?php echo t('Read Only')?></option>
+        <option <?php echo $s0?> value=0><?php echo t('Full Access')?></option>
+        </select>
+        (Permissions for new users logging in from LDAP for the first time)</td></tr>
+
     <tr><td class="tdt"><?php te("LDAP Search for users");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_getusers' value="<?php echo $settings['ldap_getusers']?>"> e.g.: ou=People,dc=mydomain,dc=com</td></tr>
     <tr><td class="tdt"><?php te("LDAP User filter");?>:</td> 
