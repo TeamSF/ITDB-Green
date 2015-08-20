@@ -225,23 +225,51 @@ function db_execute2($dbh,$sql,$params=NULL) {
 
 
 
-function connect_to_ldap_server($ldap_server,$username,$passwd,$ldap_dn) {
+function connect_to_ldap_server($ldap_server,$ldap_port,$username,$passwd,$ldap_dn) {
     global $gen_error,$gen_errorstr;
 
-    $ds=ldap_connect($ldap_server);  // must be a valid LDAP server!
+    $ds=ldap_connect($ldap_server,$ldap_port);  // must be a valid LDAP server!
     //echo "connect result is " . $ds . "<br />\n";
-    if($ds){
+    //Check for passwd too - otherwise empty passwords are accepted!
+    if(($ds) && ($passwd)){
         $dn="uid=".$username.",".$ldap_dn;
-        echo $dn;
         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-        $r=ldap_bind($ds,$dn, $passwd);
+        $r=@ldap_bind($ds,$dn, $passwd);
+        //Catch possible error
+        $r_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
         if(!$r){
-            $gen_errorstr="ldap_bind: ".ldap_error($ds);
-            $gen_error=100;
-            ldap_close($ds);
-            return FALSE;
+            //Try with other DN syntax --> username@mydomain.com
+            //Active Directory compatible / in case UID is not set
+            $r2=@ldap_bind($ds,$username.$ldap_dn, $passwd);
+            //Catch possible error
+            $r2_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
+            if(!$r2){
+                //Try with a third DN syntax --> just the username
+                //Active Directory compatible / in case UID is not set
+                $r3=@ldap_bind($ds,$username.$ldap_dn, $passwd);
+                //Catch possible error
+                $r3_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
+                if(!$r3){
+                    //Show errors only if both attempts failed
+                    echo "Login with DN ".$dn." failed: ".$r_error;
+                    echo "Login with DN ".$username.$ldap_dn." failed: ".$r2_error;
+                    echo "Login with DN ".$username." failed: ".$r3_error;
+                    $gen_errorstr="ldap_bind: ".ldap_error($ds);
+                    $gen_error=100;
+                    ldap_close($ds);
+                    return FALSE;
+                }
+                else {
+                    return $ds;
+                }
+            }
+            else {
+                return $ds;
+            }
         }
-        return $ds;
+        else {
+            return $ds;
+        }
     }
     else {
         return FALSE;
