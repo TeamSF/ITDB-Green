@@ -201,7 +201,7 @@ echo "\n<h1>".t("Settings")."</h1>\n";
         </select>
         (Permissions for new users logging in from LDAP for the first time)</td></tr>
 
-<?php if ($settings['useldapsync']==1) { ?>
+<?php if ($settings['useldap']==1) { ?>
     <tr><td colspan=2><h3><?php te("LDAP User & Item Sync"); ?></h3></td></tr>
     <tr><td class="tdt"><?php te("Use LDAP User & Item Sync");?>:</td>
         <td><select  name='useldapsync'>
