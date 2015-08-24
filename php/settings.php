@@ -31,6 +31,9 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
   "', ldap_dn='".trim($_POST['ldap_dn']).
   "', ldap_getusers='".trim($_POST['ldap_getusers']).
   "', ldap_getusers_filter='".trim($_POST['ldap_getusers_filter']).
+  "', useldapsync='".$_POST['useldapsync'].
+  "', ldap_sync_delay_user='".trim($_POST['ldap_sync_delay_user']).
+  "', ldap_sync_delay_item='".trim($_POST['ldap_sync_delay_item']).
   "',".
        " lang='".$_POST['lang']."', ".
        //" switchmapenable='".$_POST['switchmapenable']."', switchmapdir='".$_POST['switchmapdir']."',".
@@ -198,11 +201,27 @@ echo "\n<h1>".t("Settings")."</h1>\n";
         </select>
         (Permissions for new users logging in from LDAP for the first time)</td></tr>
 
+<?php if ($settings['useldapsync']==1) { ?>
+    <tr><td colspan=2><h3><?php te("LDAP User & Item Sync"); ?></h3></td></tr>
+    <tr><td class="tdt"><?php te("Use LDAP User & Item Sync");?>:</td>
+        <td><select  name='useldapsync'>
+        <?php
+        if ($settings['useldapsync']==1) $s1='SELECTED';
+        else $s1='';
+        ?>
+        <option value=0><?php echo t('No')?></option>
+        <option <?php echo $s1?> value=1><?php echo t('Yes')?></option>
+        </select>
+        Sync user accounts and item data via LDAP. Login to ITDB via LDAP is necessary!!</td></tr>
     <tr><td class="tdt"><?php te("LDAP Search for users");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_getusers' value="<?php echo $settings['ldap_getusers']?>"> e.g.: ou=People,dc=mydomain,dc=com</td></tr>
     <tr><td class="tdt"><?php te("LDAP User filter");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_getusers_filter' value="<?php echo $settings['ldap_getusers_filter']?>"> e.g.: (&amp; (uid=*) (IsActive=TRUE))</td></tr>
-
+    <tr><td class="tdt"><?php te("User sync delay (hours)");?>:</td>
+        <td><input  class='input2 ' size=20 type=text name='ldap_sync_delay_user' value="<?php echo $settings['ldap_sync_delay_user']?>"> Delay to wait before user accounts are synced again via LDAP</td></tr>
+    <tr><td class="tdt"><?php te("Item sync delay (hours)");?>:</td>
+        <td><input  class='input2 ' size=20 type=text name='ldap_sync_delay_item' value="<?php echo $settings['ldap_sync_delay_item']?>"> Delay to wait before item data is synced again via LDAP</td></tr>
+<?php }; ?>
 
 <tr>
 <td colspan=2>
