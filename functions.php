@@ -233,6 +233,7 @@ function connect_to_ldap_server($ldap_server,$ldap_port,$username,$passwd,$ldap_
     //Check for passwd too - otherwise empty passwords are accepted!
     if(($ds) && ($passwd)){
         $dn="uid=".$username.",".$ldap_dn;
+        ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
         $r=@ldap_bind($ds,$dn, $passwd);
         //Catch possible error
