@@ -45,15 +45,26 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
 
 
   if ($_POST['id']=="new")  {//if we came from a post (save) the add user 
-    $sql="INSERT into users (username , userdesc , pass, usertype) ".
-	 " VALUES ('$username','$userdesc','$pass', '$usertype')";
-    db_exec($dbh,$sql,0,0,$lastid);
-    $lastid=$dbh->lastInsertId();
-    print "<br><b>Added user <a href='$scriptname?action=$action&amp;id=$lastid'>$lastid</a></b><br>";
-    echo "<script>window.location='$scriptname?action=$action&id=$lastid'</script> "; //go to the new user
-    echo "\n</body></html>";
-    //$id=$lastid;
-    exit;
+    //check for duplicate username
+    $sql="SELECT count(id) AS count from users where username='{$_POST['username']}'";
+    $sth1=db_execute($dbh,$sql);
+    $r1=$sth1->fetch(PDO::FETCH_ASSOC);
+    $sth1->closeCursor();
+    $c=$r1['count'];
+    if ($c) {
+      echo "<b>Not saved -- Username already exists</b>";
+    }
+    else {
+        $sql="INSERT into users (username , userdesc , pass, usertype) ".
+         " VALUES ('$username','$userdesc','$pass', '$usertype')";
+        db_exec($dbh,$sql,0,0,$lastid);
+        $lastid=$dbh->lastInsertId();
+        print "<br><b>Added user <a href='$scriptname?action=$action&amp;id=$lastid'>$lastid</a></b><br>";
+        echo "<script>window.location='$scriptname?action=$action&id=$lastid'</script> "; //go to the new user
+        echo "\n</body></html>";
+        //$id=$lastid;
+        exit;
+    }
 
   }//new rack
   else {
