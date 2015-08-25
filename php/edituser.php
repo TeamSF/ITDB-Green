@@ -141,9 +141,13 @@ else
         <td>
 	<select class='mandatory' validate='required:true' name='usertype'>
 	<?php
-	if ($r['usertype']==1 || empty($r['username'])) {$s1="selected"; $s0="";} else {$s0="selected"; $s1="";} 
-	echo " <option value=1 $s1>".t("Read Only")."</option>\n".
-	     " <option value=0 $s0>".t("Full Access")."</option>\n".
+	if ($r['usertype']==1 || $r['usertype']==2 || empty($r['username'])) {$s1="selected"; $s0="";} else {$s0="selected"; $s1="";}
+    if ($r['usertype']==2) {
+        echo " <option value=2 $s1>".t("Read Only (LDAP)")."</option>\n";
+    } else {
+        echo " <option value=1 $s1>".t("Read Only")."</option>\n";
+    }
+	     echo " <option value=0 $s0>".t("Full Access")."</option>\n".
 	     "</select></td>";
 	?>
 	</select>
