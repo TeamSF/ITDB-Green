@@ -258,12 +258,15 @@ $info = ldap_get_entries($ldap, $search);
 // c) delete them from the database if no item is assigned
 // d) display an error when trying to delete them and an item is assigned
 
+$all_ldap_users = array();
 for ($i = 0; $i<$info["count"]; $i++) {
     $ldap_username = $info[$i]["samaccountname"][0];
     $ldap_userdesc = $info[$i]["cn"][0];
     $user_id = getuseridbyname($ldap_username);
     // Skip local user "admin" with user id "1"
     if ($ldap_username!='admin' || $user_id!="1" ) {
+        // Build array with all users from ldap
+        $all_ldap_users[] = $ldap_username;
         // Insert new users into database
         if ($user_id == "-1")
         {
@@ -288,7 +291,39 @@ for ($i = 0; $i<$info["count"]; $i++) {
     }
 }
 
-//$sql="SELECT id,username from users";
+// Get all local users which are from ldap and have no password
+$sql="SELECT username from users where usertype='2' AND (pass IS NULL OR pass='')";
+$sth=db_execute($dbh,$sql);
+$r=$sth->fetchAll(PDO::FETCH_ASSOC);
+while ($row = array_shift($r)) {
+    $all_local_users[] = $row['username'];
+}
+
+//Compare local user array and ldap user array
+//Assume users without items and no longer in ldap can be deleted
+$only_local_users = array_diff($all_local_users, $all_ldap_users);
+
+//Delete every user from ldap without any associated items
+foreach ($only_local_users as $key => $local_user)
+{
+    $user_id = getuseridbyname($local_user);
+    $assigned_items=countitemsofuser($user_id);
+    if ($assigned_items == 0)
+    {
+        deluser($user_id,$dbh);
+    }
+    else
+    {
+        $disperr= "
+        <div class='ui-state-error ui-corner-all' style='padding: 0 .7em;width:930px;margin-bottom:3px;margin-top:6px;margin-left:11px;'>
+          <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span>
+          <strong>Error: Cannot delete the user ".$local_user.".<br>User has <a href='$scriptname?action=edituser&amp;id=$user_id' style='color:#2233DD'>".$assigned_items." items</a> assigned</strong></p>
+        </div>
+        ";
+    }
+}
+
+//print_r($all_local_users);
 
 /*
 // $i = entries
@@ -325,7 +360,7 @@ for ($i=0; $i<$info["count"]; $i++)
 //$attrs = ldap_get_attributes($ldap, $entry);
 */
 
-echo "Search has ".$info["count"]." entries returned\n";
+//echo "Search has ".$info["count"]." entries returned\n";
 
 ?>
 
@@ -508,7 +543,7 @@ echo "<br> <small>".
 
 <div id='mainpage'>
 <?php 
-
+echo $disperr;
 if ($authstatus) 
   require($req);
 else {
