@@ -229,6 +229,104 @@ if ($dlg && $authstatus) {
   exit;
 }
 
+$username = "";
+$password = "";
+
+// Connect & bind to ldap
+$ldap=connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$username,$password,$settings['ldap_dn']);
+
+// Set referals option to 0 - otherwise full directory search returns "operation error"
+ldap_set_option($ldap, LDAP_OPT_REFERRALS, 0);
+ldap_set_option($ldap, LDAP_OPT_PROTOCOL_VERSION, 3);
+
+// Search ldap
+// OU for users
+$ou = "";
+// Filter which objects of ldap shall be included in search results
+$filter = "(&(sAMAccountType=805306368)(!(userAccountControl=514))(!(userAccountControl=66050))(mail=*))";
+// Specify which attributes shall be taken from the filtered objects
+$attributes = array ('samaccountname','cn');
+// Execute the search with object filter an attribute list
+$search = ldap_search($ldap,$ou,$filter,$attributes);
+
+// Get the results of the ldap search
+$info = ldap_get_entries($ldap, $search);
+
+// Go thru results and
+// a) add new users to the database
+// b) update existing users
+// c) delete them from the database if no item is assigned
+// d) display an error when trying to delete them and an item is assigned
+
+for ($i = 0; $i<$info["count"]; $i++) {
+    $ldap_username = $info[$i]["samaccountname"][0];
+    $ldap_userdesc = $info[$i]["cn"][0];
+    $user_id = getuseridbyname($ldap_username);
+    // Skip local user "admin" with user id "1"
+    if ($ldap_username!='admin' || $user_id!="1" ) {
+        // Insert new users into database
+        if ($user_id == "-1")
+        {
+            $usertype = "2";
+            $sql="INSERT into users (username , userdesc , usertype) ".
+             " VALUES ('$ldap_username','$ldap_userdesc', '$usertype')";
+            db_exec($dbh,$sql,0,0,$lastid);
+            $lastid=$dbh->lastInsertId();
+            echo "Added user ".$ldap_username."<br>";
+        }
+        // Update existing users
+        else
+        {
+            // Update description of user when necessary
+            if ((getuserdescbyname($ldap_username)) != $ldap_userdesc)
+            {
+                $sql="UPDATE users set userdesc='$ldap_userdesc' WHERE id='$user_id'";
+                db_exec($dbh,$sql);
+                echo "Updated user #".$user_id." with username ".$ldap_username."<br>";
+            }
+        }
+    }
+}
+
+//$sql="SELECT id,username from users";
+
+/*
+// $i = entries
+// $ii = attributes for entry
+// $iii = values per attribute
+for ($i = 0; $i<$info["count"]; $i++) {
+  for ($ii=0; $ii<$info[$i]["count"]; $ii++){
+     $data = $info[$i][$ii];
+     for ($iii=0; $iii<$info[$i][$data]["count"]; $iii++) {
+       echo $data.":".$info[$i][$data][$iii]."<br>";
+     }
+  }
+}
+
+print("<pre>".print_r($info,true)."</pre>");
+
+echo "JETZT GEHTS LOS<br>";
+//Now, to display the results we want:
+for ($i=0; $i<$info["count"]; $i++)
+    {
+    // to show the attribute displayName (note the case!)
+    $ldap_username = $info[$i]["samaccountname"][0];
+    //$test = getuseridbyname($ldap_username);
+    //echo "TEST_IST:".$test."TEST<br>";
+    if($test != "-1"){
+        echo $test;
+        echo $info[$i]["samaccountname"][0];
+        echo "<br>";
+    }
+}
+
+//$entry = ldap_first_entry($ldap, $search);
+
+//$attrs = ldap_get_attributes($ldap, $entry);
+*/
+
+echo "Search has ".$info["count"]." entries returned\n";
+
 ?>
 
 <body onload='BodyLoad()' class='mainbody'>
