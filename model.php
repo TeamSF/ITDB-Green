@@ -512,6 +512,23 @@ function getuseridbyname ($name) {
 		return $r['id'];
 }
 
+function getuserdescbyname ($name) {
+  global $dbh;
+
+	$name=trim(strtolower($name));
+	if (!strlen($name))
+		return -1;
+	$sql="SELECT userdesc from users where LOWER(username) ='$name' ";
+	$sth=db_execute($dbh,$sql);
+	$r=$sth->fetch(PDO::FETCH_ASSOC);
+	$sth->closeCursor();
+
+	if (!count($r['userdesc']))
+		return -1;
+	else
+		return $r['userdesc'];
+}
+
 function getagentidbyname ($name) {
   global $dbh;
 
