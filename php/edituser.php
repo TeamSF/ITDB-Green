@@ -55,6 +55,7 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
       echo "<b>Not saved -- Username already exists</b>";
     }
     else {
+        $pass = password_hash($pass, PASSWORD_DEFAULT);
         $sql="INSERT into users (username , userdesc , pass, usertype) ".
          " VALUES ('$username','$userdesc','$pass', '$usertype')";
         db_exec($dbh,$sql,0,0,$lastid);
@@ -83,10 +84,11 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
             echo "<h2>".t("user admin has always full access")."</h2><br>";
             $usertype=0;
         }
+        $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
           $sql="UPDATE users set ".
         " username='".$_POST['username']."', ".
         " userdesc='".$_POST['userdesc']."', ".
-        " pass='".$_POST['pass']."', ".
+        " pass='".$pass."', ".
         " usertype='".$usertype."' ".
         " WHERE id=$id";
           db_exec($dbh,$sql);

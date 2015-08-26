@@ -204,7 +204,7 @@ if (!$demomode ) {
        $password=$_POST['authpassword'];
 
         if ($settings['useldap'] && $username != 'admin') {
-            $ldap_authmsg=0;
+            $ldap_authmsg=FALSE;
             $ldap_allowed_users = explode(',',$settings['ldap_allowed_logins']);
             if (in_array($username, $ldap_allowed_users)) {
                 $r=connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$username,$password,$settings['ldap_dn']);
@@ -242,6 +242,10 @@ if (!$demomode ) {
            $sth=db_execute($dbh,"SELECT * from users where username='$username' limit 1",1);
            $userdata=$sth->fetchAll(PDO::FETCH_ASSOC);
            $nr=count($userdata);
+           //When passwords matches new hashing function, set password to hash to login
+           if (password_verify($password, $userdata[0]['pass'])) {
+              $password = $userdata[0]['pass'];
+           }
            if ((!$nr) || $userdata[0]['username']!=$username) {
               $authstatus=0;
               $authmsg="Invalid username";
