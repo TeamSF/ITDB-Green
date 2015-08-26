@@ -24,6 +24,8 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
   "', dateformat='".$_POST['dateformat'].
   "', currency='".$_POST['currency'].
   "', useldap='".$_POST['useldap'].
+  "', ldap_binduser='".trim($_POST['ldap_binduser']).
+  "', ldap_bindpass='".password_hash($_POST['ldap_bindpass'],PASSWORD_DEFAULT).
   "', ldap_server='".trim($_POST['ldap_server']).
   "', ldap_port='".trim($_POST['ldap_port']).
   "', ldap_allowed_logins='".trim($_POST['ldap_allowed_logins']).
