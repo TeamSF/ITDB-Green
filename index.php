@@ -229,62 +229,6 @@ if ($dlg && $authstatus) {
   exit;
 }
 
-// Connect & bind to ldap
-$ldap=connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$username,$password,$settings['ldap_dn']);
-
-// OU for users
-$ou = $settings['ldap_getusers'];
-// Filter which objects of ldap shall be included in search results
-$filter = $settings['ldap_getusers_filter'];
-
-
-$ldap_entries = get_entries_from_ldap_server($ldap,$ou,$filter);
-$disperr = update_local_users_with_ldap_users($ldap_entries);
-
-
-
-function old_stuff()
-{
-//print_r($all_local_users);
-
-/*
-// $i = entries
-// $ii = attributes for entry
-// $iii = values per attribute
-for ($i = 0; $i<$info["count"]; $i++) {
-  for ($ii=0; $ii<$info[$i]["count"]; $ii++){
-     $data = $info[$i][$ii];
-     for ($iii=0; $iii<$info[$i][$data]["count"]; $iii++) {
-       echo $data.":".$info[$i][$data][$iii]."<br>";
-     }
-  }
-}
-
-print("<pre>".print_r($info,true)."</pre>");
-
-echo "JETZT GEHTS LOS<br>";
-//Now, to display the results we want:
-for ($i=0; $i<$info["count"]; $i++)
-    {
-    // to show the attribute displayName (note the case!)
-    $ldap_username = $info[$i]["samaccountname"][0];
-    //$test = getuseridbyname($ldap_username);
-    //echo "TEST_IST:".$test."TEST<br>";
-    if($test != "-1"){
-        echo $test;
-        echo $info[$i]["samaccountname"][0];
-        echo "<br>";
-    }
-}
-
-//$entry = ldap_first_entry($ldap, $search);
-
-//$attrs = ldap_get_attributes($ldap, $entry);
-*/
-
-//echo "Search has ".$info["count"]." entries returned\n";
-}
-
 ?>
 
 <body onload='BodyLoad()' class='mainbody'>
