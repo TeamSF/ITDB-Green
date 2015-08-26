@@ -277,5 +277,157 @@ function connect_to_ldap_server($ldap_server,$ldap_port,$username,$passwd,$ldap_
     }
 }
 
+function get_entries_from_ldap_server($ldap,$ou,$filter)
+{
+    if(($ldap) && ($ou) && ($filter))
+    {
+        // Specify which attributes shall be taken from the filtered objects
+        $attributes = array ('samaccountname','cn');
+        // Execute the search with object filter an attribute list
+        $search = ldap_search($ldap,$ou,$filter,$attributes);
+
+        // Get the results of the ldap search
+        $ldap_entries = ldap_get_entries($ldap, $search);
+
+        return $ldap_entries;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+
+function get_ldap_users($ldap_entries)
+{
+    if (count($ldap_entries) != 0)
+    {
+        $all_ldap_users = array();
+        for ($i = 0; $i<$ldap_entries["count"]; $i++) {
+            $ldap_username = $ldap_entries[$i]["samaccountname"][0];
+            if ($ldap_username!='admin') {
+                // Build array with all users from ldap
+                $all_ldap_users[] = $ldap_username;
+            }
+        }
+        return $all_ldap_users;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+function get_local_users_copied_from_ldap()
+{
+    global $dbh;
+
+    // Get all local users which are from ldap and have no password
+    $sql="SELECT username from users where usertype='2' AND (pass IS NULL OR pass='')";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    while ($row = array_shift($r)) {
+        $all_local_users[] = $row['username'];
+    }
+    return $all_local_users;
+}
+
+function compare_local_users_ldap_users($local_users,$ldap_users)
+{
+    if ((count($local_users) != 0) && (count($ldap_users) != 0))
+    {
+        //Compare local user array and ldap user array - returns users only existing locally
+        $only_local_users = array_diff($local_users, $ldap_users);
+
+        return $only_local_users;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+function update_local_users_with_ldap_users($ldap_entries)
+{
+    global $dbh;
+
+    for ($i = 0; $i<$ldap_entries["count"]; $i++) {
+        $ldap_username = $ldap_entries[$i]["samaccountname"][0];
+        $ldap_userdesc = $ldap_entries[$i]["cn"][0];
+        $user_id = getuseridbyname($ldap_username);
+        // Skip local user "admin" with user id "1"
+        if ($ldap_username!='admin' || $user_id!="1" ) {
+            // Insert new users into database
+            if ($user_id == "-1")
+            {
+                $usertype = "2";
+                $sql="INSERT into users (username , userdesc , usertype) ".
+                 " VALUES ('$ldap_username','$ldap_userdesc', '$usertype')";
+                db_exec($dbh,$sql,0,0,$lastid);
+                $lastid=$dbh->lastInsertId();
+            }
+            // Update existing users
+            else
+            {
+                // Update description of user when necessary
+                if ((getuserdescbyname($ldap_username)) != $ldap_userdesc)
+                {
+                    $sql="UPDATE users set userdesc='$ldap_userdesc' WHERE id='$user_id'";
+                    db_exec($dbh,$sql);
+                }
+            }
+        }
+    }
+
+    $ldap_users = get_ldap_users($ldap_entries);
+    $local_users = get_local_users_copied_from_ldap();
+
+    if ((count($local_users) != 0) && (count($ldap_users) != 0))
+    {
+        $only_local_users = compare_local_users_ldap_users($local_users,$ldap_users);
+
+        //Delete every user existing only locally that came from ldap and does not have any associated items
+        //When user has items assigned, display an errorcontainer instead
+        $still_assigned=array();
+        $assigned_id=array();
+        $assigned=false;
+        $disperr="";
+        foreach ($only_local_users as $key => $local_user)
+        {
+            $user_id = getuseridbyname($local_user);
+            $assigned_items=countitemsofuser($user_id);
+            if ($assigned_items == 0)
+            {
+                deluser($user_id,$dbh);
+            }
+            else
+            {
+                $still_assigned[]=$local_user;
+                $assigned_id[]=$user_id;
+                $assigned=true;
+            }
+        }
+        if($assigned==true)
+        {
+            $disperr.="<div class='ui-state-error ui-corner-all' style='padding: 0 .7em;min-width:930px;margin-bottom:3px;margin-top:6px;margin-left:120px;margin-right:15px;'>
+                       <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span> <strong align=left;>Error: Cannot delete the following user";
+            if(count($still_assigned)!=1) $disperr.="s";
+            $disperr.=": ";
+
+            for ($i=0;$i<count($still_assigned);$i++)
+            {
+                $disperr.= "<a href='$scriptname?action=edituser&amp;id=$assigned_id[$i]' style='color:#2233DD'>".$still_assigned[$i];
+                if($i+1 !=count($still_assigned)) $disperr.=", ";
+                $disperr.="</a>";
+            }
+            $disperr.="<br>User";
+            if(count($still_assigned)!=1) $disperr.="s";
+            $disperr.=" still";
+            if(count($still_assigned)==1) $disperr.=" has Items assigned!</strong></p></div>";
+            else $disperr.=" have Items assigned!</strong></p></div>";
+        }
+        return $disperr;
+    }
+}
 
 ?>
