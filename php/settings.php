@@ -182,6 +182,10 @@ echo "\n<h1>".t("Settings")."</h1>\n";
         </select>
         (for authentication only, except user admin which is local)</td></tr>
 
+    <tr><td class="tdt"><?php te("LDAP Bind User");?>:</td>
+        <td><input  class='input2 ' size=20 type=text name='ldap_binduser' value="<?php echo $settings['ldap_binduser']?>"> User who is able to connect with the LDAP-Server</td></tr>
+    <tr><td class="tdt"><?php te("LDAP Bind Pass");?>:</td>
+        <td><input  class='input2 ' size=20 type=password name='ldap_bindpass' value="<?php echo $settings['ldap_bindpass']?>"> Password for the Bind User</td></tr>
     <tr><td class="tdt"><?php te("LDAP Server");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_server' value="<?php echo $settings['ldap_server']?>"> e.g.: ldap.mydomain.com</td></tr>
     <tr><td class="tdt"><?php te("LDAP Port");?>:</td>
