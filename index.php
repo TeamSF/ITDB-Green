@@ -229,6 +229,8 @@ if ($dlg && $authstatus) {
   exit;
 }
 
+session_start();
+echo $_SESSION["ldap_sync_error_container"];
 ?>
 
 <body onload='BodyLoad()' class='mainbody'>
@@ -409,8 +411,7 @@ echo "<br> <small>".
 
 
 <div id='mainpage'>
-<?php 
-echo $disperr;
+<?php
 if ($authstatus) 
   require($req);
 else {

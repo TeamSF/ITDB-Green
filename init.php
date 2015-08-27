@@ -198,6 +198,9 @@ if (!$demomode ) {
   if (isset($_POST['logout'])) {
      setcookie("itdbcookie1",'', time()+3600*1,$wscriptdir);
      header("Location: $scriptname"); //eat get parameters
+     session_start(); //Start session first before killing it to avoid:
+     session_unset(); //session_destroy(): Trying to destroy uninitialized session
+     session_destroy();
   }
   elseif (isset($_POST['authusername'])){ //logging in
        $username=$_POST['authusername'];
@@ -276,6 +279,9 @@ if (!$demomode ) {
   elseif (isset($_COOKIE["itdbuser"]) && ! isset($_COOKIE["itdbcookie1"])) {
     $authstatus=0;
     $authmsg="Session Expired";
+    session_start();
+    session_unset();
+    session_destroy();
   } 
   elseif (isset($_COOKIE["itdbuser"])) { //& isset itdbookie1, check if valid
     $sql="SELECT * from users where username='".$_COOKIE["itdbuser"]."' limit 1";
@@ -291,6 +297,9 @@ if (!$demomode ) {
     else {
       $authstatus=0;
       $authmsg="Logged on from another browser? Please re-login.";
+      session_start();
+      session_unset();
+      session_destroy();
     }
   }
   else
