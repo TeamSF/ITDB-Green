@@ -17,6 +17,13 @@ $(function () {
   });
 });
 
+$(document).ready(function() {
+    <?php
+        if (isset($_POST['sync']) ) { //if we came from ldap sync, refresh to show new synced ldap users
+	       echo "window.location=window.location;";
+        }
+    ?>
+});
 </SCRIPT>
 <?php 
 
@@ -24,9 +31,25 @@ if (!isset($initok)) {echo "do not run this script directly";exit;}
 
 $sql="SELECT * from users ORDER by username ASC";
 $sth=db_execute($dbh,$sql);
+
+if (isset($_POST['sync'])) {
+    $ldap = connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$settings['ldap_binduser'],base64_decode($settings['ldap_bindpass']),$settings['ldap_dn']);
+    if ($ldap) {
+        $ldap_entries = get_entries_from_ldap_server($ldap,$settings['ldap_getusers'],$settings['ldap_getusers_filter']);
+        if ($ldap_entries) {
+            $ldap_sync_result = update_local_users_with_ldap_users($ldap_entries);
+            $_SESSION["ldap_sync_error_container"] = $ldap_sync_result;
+        }
+    }
+}
 ?>
 
 <h1><?php te("Users");?> <a title='<?php te("Add new User");?>' href='<?php echo $scriptname?>?action=edituser&amp;id=new'><img border=0 src='images/add.png' ></a>
+<?php if ($settings['useldapsync'] == 1) { ?>
+<form id='mainform' method=post style="display:inline"><sub>
+<a title='<?php te("Sync LDAP Users");?>'><input type="image" name="sync" img src="images/refresh.png" value="sync"></input></a>
+</sub></form>
+<?php }; ?>
 </h1>
 
 <table class='display' width="100%" id='userslisttbl'>
