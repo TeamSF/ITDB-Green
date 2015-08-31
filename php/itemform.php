@@ -577,6 +577,37 @@ else if ($action=="edititem") {
       </tr>
       </table>
 
+
+        <td class='tdtop'>
+      <table border='0' class=tbl2> <!-- Log/History -->
+      <tr><td colspan=2 ><h3><?php te("Log/History");?></h3></td></tr>
+      <tr><td class='tdt'>
+    <?php
+    $itemid=$_GET['id'];
+
+    $sql="SELECT * from actions where itemid=$itemid order by actiondate";
+
+    $sth=db_execute($dbh,$sql);
+
+    echo "<tr><th width=10px> Action Date</th><th>Description</th></tr>\n";
+
+    $i=0;
+    /// print actions list
+    while ($r=$sth->fetch(PDO::FETCH_ASSOC)) {
+    $i++;
+        $d=strlen($r['actiondate'])?date($dateparam,$r['actiondate']):"-"; //seconds to d/m/y
+
+        echo "<td>$d</td>\n";
+        echo "<td>{$r['description']}</td>\n";
+        echo "</tr>\n\n";
+    }
+?>
+
+
+           </td></tr>
+    </tr></table>
+
+
     </td>
 
     </tr>
