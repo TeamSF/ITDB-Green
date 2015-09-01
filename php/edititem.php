@@ -11,6 +11,59 @@ $formvars=array("itemtypeid","function","manufacturerid","label",
   "cpu","cpuno","corespercpu", "ram", "rackmountable", "rackid","rackposition","rackposdepth","usize","status",
   "macs","ipv4","ipv6","remadmip","panelport","switchid","switchport","ports");
 
+//get ldap information of item
+if (getitemtypesoftwaresupportofitem($id,$dbh) && $settings['useldapsync'] && trim($dnsname))
+{
+    //Get ldap data already stored in the database
+    $sql="SELECT * FROM item2ldap WHERE itemid='$id'";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $itdb_ldap_item_data = array_shift($r);
+    $found=$itdb_ldap_item_data['itemid'];
+
+    //Based on last sync and sync delay update item data from ldap
+    $ldap_update_data = ldap_compare_sync_time(1,$id);
+
+    //Check if we found something or not
+    if($found == $id)
+    {
+        $dn = $itdb_dn = $itdb_ldap_item_data['dn'];
+        $ou_full = $itdb_ou_full = $itdb_ldap_item_data['ou_full'];
+        $ou_name = $itdb_ou_name=$itdb_ldap_item_data['ou_name'];
+        $os = $itdb_os = $itdb_ldap_item_data['os'];
+        $os_servicepack = $itdb_os_servicepack=$itdb_ldap_item_data['os_servicepack'];
+        $os_version = $itdb_os_version = $itdb_ldap_item_data['os_version'];
+    }
+
+    if($ldap_update_data)
+    {
+        $ldap = connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$settings['ldap_binduser'],base64_decode($settings['ldap_bindpass']),$settings['ldap_dn']);
+        if ($ldap) {
+            $ldap_entries = get_entries_from_ldap_server($ldap,$settings['ldap_getcomputers'],$settings['ldap_getcomputers_filter'],1);
+            if($ldap_entries) {
+                $ldap_item_data = get_computer_info_from_ldap($_GET['id'],$ldap_entries,$settings['ldap_getcomputers']);
+                if(is_array($ldap_item_data))
+                {
+                    //Set values to the LDAP values when LDAP provides new values
+                    //Otherwise set new_var to FALSE (used in itemforms.php)
+                    $new_dn = $new_os = $new_os_servicepack = $new_os_version = TRUE;
+                    if ($dn != $ldap_item_data['dn']) {
+                        $dn = $ldap_dn = $ldap_item_data['dn'];
+                        $ou_full = $ldap_ou_full=$ldap_item_data['ou_full'];
+                        $ou_name = $ldap_ou_name=$ldap_item_data['ou_name'];
+                    }
+                    else {
+                        $new_dn=FALSE;
+                    }
+                    if ($os != $ldap_item_data['os']) $os=$ldap_item_data['os']; else $new_os=FALSE;
+                    if ($os_servicepack != $ldap_item_data['os_sp']) $os_servicepack = $ldap_item_data['os_sp']; else $new_os_servicepack=FALSE;
+                    if ($os_version != $ldap_item_data['os_ver']) $os_version=$ldap_item_data['os_ver']; else $new_os_version=FALSE;
+                }
+            }
+        }
+    }
+}
+
 /* delete item */
 if (isset($_GET['delid'])) { 
   //first handle file associations
@@ -48,6 +101,10 @@ if (isset($_GET['delid'])) {
 
   //delete item 
   $sql="DELETE from items where id=".$_GET['delid'];
+  $sth=db_exec($dbh,$sql);
+
+  //delete item ldap data
+  $sql="DELETE from item2ldap where itemid=".$_GET['delid'];
   $sth=db_exec($dbh,$sql);
 
   echo "<script>document.location='$scriptname?action=listitems'</script>";
@@ -148,6 +205,27 @@ if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
 
   $sql="UPDATE items set $set WHERE id=$id";
   db_exec($dbh,$sql); 
+
+  //Save Active Directory and OS information
+  //When itemid is found and matches id continue with update, otherwise insert
+  if ($found == $id && $ldap_update_data)
+  {
+      $set_ldap="dn='".htmlspecialchars($dn,ENT_QUOTES,"UTF-8")."'";
+      $set_ldap.=", ou_full='".htmlspecialchars($ou_full,ENT_QUOTES,"UTF-8")."'";
+      $set_ldap.=", ou_name='".htmlspecialchars($ou_name,ENT_QUOTES,"UTF-8")."'";
+      $set_ldap.=", os='".htmlspecialchars($os,ENT_QUOTES,"UTF-8")."'";
+      $set_ldap.=", os_servicepack='".htmlspecialchars($os_servicepack,ENT_QUOTES,"UTF-8")."'";
+      $set_ldap.=", os_version='".htmlspecialchars($os_version,ENT_QUOTES,"UTF-8")."'";
+      if($ldap_update_data) $set_ldap.=", lastsync=".time();
+      $sql="UPDATE item2ldap set $set_ldap WHERE itemid=$id";
+      db_exec($dbh,$sql);
+  }
+  else {
+      $lastsync=time();
+      $sql="INSERT into item2ldap (itemid, dn, ou_full, ou_name, os, os_servicepack, os_version, lastsync) VALUES ".
+      " ('$id', '$dn', '$ou_full', '$ou_name', '$os', '$os_servicepack', '$os_version', '$lastsync')";
+      db_exec($dbh,$sql);
+  }
 
   //Add new action entry
   //if not exists already for today
