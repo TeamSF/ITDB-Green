@@ -13,6 +13,32 @@ function getstatusidofitem($itemid,$dbh)
 
 }
 
+function getdnsnameofitem($itemid,$dbh)
+{
+  $sql="SELECT dnsname FROM items WHERE items.id='$itemid'";
+  $sth=db_execute($dbh,$sql);
+  $dnsname=$sth->fetch(PDO::FETCH_ASSOC);
+  $sth->closeCursor();
+  $dnsname=$dnsname['dnsname'];
+  return $dnsname;
+
+}
+
+function getitemtypesoftwaresupportofitem($itemid,$dbh)
+{
+  $sql="SELECT itemtypeid FROM items WHERE items.id='$itemid'";
+  $sth=db_execute($dbh,$sql);
+  $itemtypeid=$sth->fetch(PDO::FETCH_ASSOC);
+  $itemtypeid=$itemtypeid['itemtypeid'];
+  $sql="SELECT hassoftware FROM itemtypes WHERE itemtypes.id='$itemtypeid'";
+  $sth=db_execute($dbh,$sql);
+  $itemtypesoftwaresupport=$sth->fetch(PDO::FETCH_ASSOC);
+  $sth->closeCursor();
+  $itemtypesoftwaresupport=$itemtypesoftwaresupport['hassoftware'];
+  return $itemtypesoftwaresupport;
+
+}
+
 /* return css and title based on item status */
 function attrofstatus($statusid,$dbh)
 {
