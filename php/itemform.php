@@ -42,6 +42,14 @@
 
   });
 
+$(document).ready(function() {
+    <?php
+        if (isset($_POST['ou_name']) || isset($_POST['os']) ) { //if we came from ldap refresh
+	       echo "window.location=window.location;";
+        }
+    ?>
+});
+
 </SCRIPT>
 <?php 
 
@@ -320,10 +328,10 @@ else if ($action=="edititem") {
       <option value=''><?php te("Select User");?></option>
       <?php 
       for ($i=0;$i<count($userlist);$i++) {
-	$dbid=$userlist[$i]['id']; $itype=$userlist[$i]['username']; $s="";
+	$dbid=$userlist[$i]['id']; $itype=$userlist[$i]['username']; $idesc=$userlist[$i]['userdesc']; $s="";
 	if ($userid==$dbid) $s=" SELECTED ";
 	//echo "<option $s value='$dbid'>".sprintf("%02d",$dbid)."-$itype</option>\n";
-	echo "<option $s value='$dbid'>$itype</option>\n";
+	echo "<option $s title='Username: &ensp;$itype\nDescription: $idesc' value='$dbid'>$itype</option>\n";
       }
       ?>
 
@@ -528,6 +536,21 @@ else if ($action=="edititem") {
 	  </select>
 	  </td>
        </tr>
+    <?php
+    if(getitemtypesoftwaresupportofitem($id,$dbh) && $settings['useldapsync'] && trim($dnsname))
+    {
+    ?>
+      <tr><tr><td colspan=2 style='padding-top:10px'><h3>Active Directory</h3></td> </tr>
+    <?php if($new_dn) { ?>
+      <tr><td class='tdt'><?php te("Org. Unit");?>:</td><td  title='Organizational Unit:<br><br>ITDB:<br><?php echo str_replace(",","<br>", $itdb_ou_full)?><br><br>LDAP:<br><?php echo str_replace(",","<br>", $ou_full)?>'>
+      <input type=text size=15 value='<?php echo $ou_name?>' name='ou_name' readonly style="background:#efdbdb"></td> </tr>
+    <?php } else { ?>
+      <tr><td class='tdt'><?php te("Org. Unit");?>:</td><td  title='Organizational Unit:<br><?php echo str_replace(",","<br>", $ou_full)?>'>
+      <input type=text size=15 value='<?php echo $ou_name?>' name='ou_name' readonly readonly style="background:#ceefcc"></td> </tr>
+    <?php } ?>
+    <?php
+    }
+    ?>
      </table>
 
     </td>
@@ -575,6 +598,37 @@ else if ($action=="edititem") {
       </select>
       </td>
       </tr>
+    <?php
+    if(getitemtypesoftwaresupportofitem($id,$dbh) && $settings['useldapsync'] && trim($dnsname)) {
+    ?>
+      <tr><tr><td colspan=2 style='padding-top:5x'><h3>Operating System</h3></td> </tr>
+
+    <?php if($new_os) { ?>
+      <tr><td class='tdt'><?php te("OS");?>:</td><td  title='Operating System:<br><br>ITDB:<br><?php echo $itdb_os?><br><br>LDAP:<br><?php echo $os?>'>
+      <input type=text size=15 value='<?php echo $os?>' name='os' readonly style="background:#efdbdb"></td> </tr>
+    <?php } else { ?>
+      <tr><td class='tdt'><?php te("OS");?>:</td><td  title='Operating System:<br><?php echo $os?>'>
+      <input type=text size=15 value='<?php echo $os?>' name='os' readonly style="background:#ceefcc"></td> </tr>
+    <?php } ?>
+
+    <?php if($new_os_servicepack) { ?>
+      <tr><td class='tdt'><?php te("Service Pack");?>:</td><td  title='Service Pack:<br><br>ITDB:<br><?php echo $itdb_os_servicepack?><br><br>LDAP:<br><?php echo $os_servicepack?>'>
+      <input type=text size=15 value='<?php echo $os_servicepack?>' name='os_servicepack' readonly style="background:#efdbdb"></td> </tr>
+    <?php } else { ?>
+      <tr><td class='tdt'><?php te("Service Pack");?>:</td><td  title='Service Pack:<br><?php echo $os_servicepack?>'>
+      <input type=text size=15 value='<?php echo $os_servicepack?>' name='os_servicepack' readonly style="background:#ceefcc"></td> </tr>
+    <?php } ?>
+
+    <?php if($new_os_version) { ?>
+      <tr><td class='tdt'><?php te("Version");?>:</td><td  title='OS Version:<br><br>ITDB:<br><?php echo $itdb_os_version?><br><br>LDAP:<br><?php echo $os_version?>'>
+      <input type=text size=15 value='<?php echo $os_version?>' name='os_version' readonly style="background:#efdbdb"></td> </tr>
+    <?php } else { ?>
+      <tr><td class='tdt'><?php te("Version");?>:</td><td  title='OS Version:<br><?php echo $os_version?>'>
+      <input type=text size=15 value='<?php echo $os_version?>' name='os_version' readonly style="background:#ceefcc"></td> </tr>
+    <?php } ?>
+    <?php
+    }
+    ?>
       </table>
 
     </td>
