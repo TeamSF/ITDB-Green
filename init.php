@@ -230,6 +230,18 @@ if (!$demomode ) {
                      setcookie("itdbuser",$username, time()+3600*24*60,$wscriptdir); //username
                      $authstatus=1;
                      $authmsg="User Authenticated";
+                     //Sync Users from LDAP on login
+                     $sync_users = ldap_compare_sync_time();
+                     if ($sync_users)
+                     {
+                         $ldap_entries = get_entries_from_ldap_server($r,$settings['ldap_getusers'],$settings['ldap_getusers_filter']);
+                         if ($ldap_entries) {
+                            $ldap_sync_result = update_local_users_with_ldap_users($ldap_entries);
+                            ldap_update_sync_time_users();
+                            session_start();
+                            $_SESSION["ldap_sync_error_container"] = $ldap_sync_result;
+                         }
+                     }
                 }
             }
             else {
