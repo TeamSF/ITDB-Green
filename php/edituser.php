@@ -46,7 +46,7 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
 
   if ($_POST['id']=="new")  {//if we came from a post (save) the add user 
     //check for duplicate username
-    $sql="SELECT count(id) AS count from users where username='{$_POST['username']}'";
+    $sql="SELECT count(id) AS count from users where username=lower('{$_POST['username']}')";
     $sth1=db_execute($dbh,$sql);
     $r1=$sth1->fetch(PDO::FETCH_ASSOC);
     $sth1->closeCursor();
@@ -55,7 +55,9 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
       echo "<b>Not saved -- Username already exists</b>";
     }
     else {
-        $pass = password_hash($pass, PASSWORD_DEFAULT);
+        //Make sure password field has a value before hashing it
+        if (trim($_POST['pass']) != "") $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+        else $pass=NULL;
         $sql="INSERT into users (username , userdesc , pass, usertype) ".
          " VALUES ('$username','$userdesc','$pass', '$usertype')";
         db_exec($dbh,$sql,0,0,$lastid);
@@ -70,7 +72,7 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
   }//new rack
   else {
     //check for duplicate username
-    $sql="SELECT count(id) AS count from users where username='{$_POST['username']}' AND id<>{$_POST['id']}";
+    $sql="SELECT count(id) AS count from users where username=lower('{$_POST['username']}') AND id<>{$_POST['id']}";
     $sth1=db_execute($dbh,$sql);
     $r1=$sth1->fetch(PDO::FETCH_ASSOC);
     $sth1->closeCursor();
@@ -84,7 +86,9 @@ if (isset($_POST['id'])) { //if we came from a post (save), update the user
             echo "<h2>".t("user admin has always full access")."</h2><br>";
             $usertype=0;
         }
-        $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+        //Make sure password field has a value before hashing it
+        if (trim($_POST['pass']) != "") $pass = password_hash($_POST['pass'], PASSWORD_DEFAULT);
+        else $pass=NULL;
           $sql="UPDATE users set ".
         " username='".$_POST['username']."', ".
         " userdesc='".$_POST['userdesc']."', ".
