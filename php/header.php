@@ -68,6 +68,10 @@ function delconfirm2(what,delurl,msg)
 function showid(n){
   document.getElementById(n).scrollIntoView(true);
 }
+
+function syncconfirm() {
+  if (window.confirm("Are you sure you want to sync users via LDAP ?")) document.getElementById('confirm_user_sync').submit();
+}
 </script>
 
 <script type="text/javascript" src="js/jquery-1.6.1.min.js"></script>
