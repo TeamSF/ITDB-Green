@@ -228,37 +228,43 @@ function db_execute2($dbh,$sql,$params=NULL) {
 function connect_to_ldap_server($ldap_server,$ldap_port,$username,$passwd,$ldap_dn) {
     global $gen_error,$gen_errorstr;
 
-    $ds=ldap_connect($ldap_server,$ldap_port);  // must be a valid LDAP server!
-    //echo "connect result is " . $ds . "<br />\n";
-    //Check for passwd too - otherwise empty passwords are accepted!
-    if(($ds) && ($passwd)){
-        $dn="uid=".$username.",".$ldap_dn;
-        ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
-        ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-        $r=@ldap_bind($ds,$dn, $passwd);
-        //Catch possible error
-        $r_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
-        if(!$r){
-            //Try with other DN syntax --> username@mydomain.com
-            //Active Directory compatible / in case UID is not set
-            $r2=@ldap_bind($ds,$username.$ldap_dn, $passwd);
+    if($ldap_server && $ldap_port && $username && $passwd)
+    {
+        $ds=ldap_connect($ldap_server,$ldap_port);  // must be a valid LDAP server!
+        //echo "connect result is " . $ds . "<br />\n";
+        //Check for passwd too - otherwise empty passwords are accepted!
+        if(($ds) && ($passwd)){
+            $dn="uid=".$username.",".$ldap_dn;
+            ldap_set_option($ds, LDAP_OPT_REFERRALS, 0);
+            ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
+            $r=@ldap_bind($ds,$dn, $passwd);
             //Catch possible error
-            $r2_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
-            if(!$r2){
-                //Try with a third DN syntax --> just the username
+            $r_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
+            if(!$r){
+                //Try with other DN syntax --> username@mydomain.com
                 //Active Directory compatible / in case UID is not set
-                $r3=@ldap_bind($ds,$username.$ldap_dn, $passwd);
+                $r2=@ldap_bind($ds,$username.$ldap_dn, $passwd);
                 //Catch possible error
-                $r3_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
-                if(!$r3){
-                    //Show errors only if both attempts failed
-                    echo "Login with DN ".$dn." failed: ".$r_error;
-                    echo "Login with DN ".$username.$ldap_dn." failed: ".$r2_error;
-                    echo "Login with DN ".$username." failed: ".$r3_error;
-                    $gen_errorstr="ldap_bind: ".ldap_error($ds);
-                    $gen_error=100;
-                    ldap_close($ds);
-                    return FALSE;
+                $r2_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
+                if(!$r2){
+                    //Try with a third DN syntax --> just the username
+                    //Active Directory compatible / in case UID is not set
+                    $r3=@ldap_bind($ds,$username.$ldap_dn, $passwd);
+                    //Catch possible error
+                    $r3_error = "LDAP Error #".ldap_errno($ds).": ".ldap_error($ds)."<br>";
+                    if(!$r3){
+                        //Show errors only if both attempts failed
+                        echo "Login with DN ".$dn." failed: ".$r_error;
+                        echo "Login with DN ".$username.$ldap_dn." failed: ".$r2_error;
+                        echo "Login with DN ".$username." failed: ".$r3_error;
+                        $gen_errorstr="ldap_bind: ".ldap_error($ds);
+                        $gen_error=100;
+                        ldap_close($ds);
+                        return FALSE;
+                    }
+                    else {
+                        return $ds;
+                    }
                 }
                 else {
                     return $ds;
@@ -269,7 +275,7 @@ function connect_to_ldap_server($ldap_server,$ldap_port,$username,$passwd,$ldap_
             }
         }
         else {
-            return $ds;
+            return FALSE;
         }
     }
     else {
@@ -277,14 +283,21 @@ function connect_to_ldap_server($ldap_server,$ldap_port,$username,$passwd,$ldap_
     }
 }
 
-function get_entries_from_ldap_server($ldap,$ou,$filter)
+function get_entries_from_ldap_server($ldap,$ou,$filter,$attributes=0)
 {
-    if(($ldap) && ($ou) && ($filter))
+    if($ldap && $ou && $filter)
     {
         // Specify which attributes shall be taken from the filtered objects
-        $attributes = array ('samaccountname','cn');
-        // Execute the search with object filter an attribute list
+        if (!$attributes)
+        {
+            $attributes = array ('samaccountname','cn');
+        }
+        else {
+            $attributes = array ('distinguishedname','dnshostname','name','operatingsystem','operatingsystemservicepack','operatingsystemversion');
+        }
+        // Execute the search with object filter and attribute list
         $search = ldap_search($ldap,$ou,$filter,$attributes);
+        //$search = ldap_search($ldap,$ou,$filter);
 
         // Get the results of the ldap search
         $ldap_entries = ldap_get_entries($ldap, $search);
@@ -304,7 +317,7 @@ function get_ldap_users($ldap_entries)
     {
         $all_ldap_users = array();
         for ($i = 0; $i<$ldap_entries["count"]; $i++) {
-            $ldap_username = $ldap_entries[$i]["samaccountname"][0];
+            $ldap_username = strtolower($ldap_entries[$i]["samaccountname"][0]);
             if ($ldap_username!='admin') {
                 // Build array with all users from ldap
                 $all_ldap_users[] = $ldap_username;
@@ -327,7 +340,7 @@ function get_local_users_copied_from_ldap()
     $sth=db_execute($dbh,$sql);
     $r=$sth->fetchAll(PDO::FETCH_ASSOC);
     while ($row = array_shift($r)) {
-        $all_local_users[] = $row['username'];
+        $all_local_users[] = strtolower($row['username']);
     }
     return $all_local_users;
 }
@@ -352,7 +365,7 @@ function update_local_users_with_ldap_users($ldap_entries)
     global $dbh;
 
     for ($i = 0; $i<$ldap_entries["count"]; $i++) {
-        $ldap_username = $ldap_entries[$i]["samaccountname"][0];
+        $ldap_username = strtolower($ldap_entries[$i]["samaccountname"][0]);
         $ldap_userdesc = $ldap_entries[$i]["cn"][0];
         $user_id = getuseridbyname($ldap_username);
         // Skip local user "admin" with user id "1"
@@ -409,25 +422,130 @@ function update_local_users_with_ldap_users($ldap_entries)
         }
         if($assigned==true)
         {
-            $disperr.="<div class='ui-state-error ui-corner-all' style='padding: 0 .7em;min-width:930px;margin-bottom:3px;margin-top:6px;margin-left:120px;margin-right:15px;'>
-                       <p><span class='ui-icon ui-icon-alert' style='float: left; margin-right: .3em;'></span> <strong align=left;>Error: Cannot delete the following user";
+            $disperr.="<div class='ui-state-error ui-corner-all' style='text-align:center; padding: 0 .7em; margin-top:10px; margin-left:120px; margin-right:15px;'>
+                       <p><span style='float: left; margin-right: .7em;'><img src='images/warning.png' style='height: 27px;'></span><span style='float: right; margin-left: .7em;'><img src='images/warning.png' style='height: 27px;'></span><strong>Cannot delete the following user";
             if(count($still_assigned)!=1) $disperr.="s";
             $disperr.=": ";
 
             for ($i=0;$i<count($still_assigned);$i++)
             {
                 $disperr.= "<a href='$scriptname?action=edituser&amp;id=$assigned_id[$i]' style='color:#2233DD'>".$still_assigned[$i];
-                if($i+1 !=count($still_assigned)) $disperr.=", ";
                 $disperr.="</a>";
+                if($i+1 !=count($still_assigned)) $disperr.="<span style='color:#2233DD'>, </span>";
             }
             $disperr.="<br>User";
             if(count($still_assigned)!=1) $disperr.="s";
             $disperr.=" still";
-            if(count($still_assigned)==1) $disperr.=" has Items assigned!</strong></p></div>";
-            else $disperr.=" have Items assigned!</strong></p></div>";
+            if(count($still_assigned)==1) $disperr.=" has ";
+            else $disperr.=" have ";
+            $disperr.="items assigned!</strong></p></div>";
         }
         return $disperr;
     }
+}
+
+function get_computer_info_from_ldap($item_id,$ldap_entries,$get_computers)
+{
+    global $dbh;
+    $item_hostname = getdnsnameofitem($item_id,$dbh);
+    $item_hostname = strtolower($item_hostname);
+    $success=FALSE;
+    if(trim($item_hostname))
+    {
+        //Search for LDAP data matching the items' hostname
+        for ($i = 0; $i<$ldap_entries["count"]; $i++) {
+            $hostname = strtolower($ldap_entries[$i]["name"][0]);
+            $dnshostname = strtolower($ldap_entries[$i]["dnshostname"][0]);
+            if ($hostname == $item_hostname || $dnshostname == $item_hostname) {
+                $array_id=$i;
+                //Create an array with all relevant data matching the entry
+                $ldap_item_data=array();
+                $ldap_item_data["name"]=$ldap_entries[$array_id]["name"][0];
+                $ldap_item_data["dnsname"]=$ldap_entries[$array_id]["dnshostname"][0];
+                $ldap_item_data["dn"]=$ldap_entries[$array_id]["distinguishedname"][0];
+                $dn=$ldap_entries[$array_id]["distinguishedname"][0];
+                $ou_full=substr($dn,(strpos($dn,",")+1));
+                $ou_name=substr(rtrim(substr($ou_full,0,-strlen($get_computers)),","),3);
+                $ldap_item_data["ou_full"]=$ou_full;
+                $ldap_item_data["ou_name"]=$ou_name;
+                $ldap_item_data["os"]=$ldap_entries[$array_id]["operatingsystem"][0];
+                $ldap_item_data["os_sp"]=$ldap_entries[$array_id]["operatingsystemservicepack"][0];
+                $ldap_item_data["os_ver"]=$ldap_entries[$array_id]["operatingsystemversion"][0];
+                $success=TRUE;
+                return $ldap_item_data;
+                break;
+            }
+        }
+    }
+    if(!$success)
+    {
+        return FALSE;
+    }
+}
+
+function ldap_get_last_sync_time($type=0,$itemid=0)
+{
+    global $dbh;
+    //Type 0 = Users
+    //Type 1 = Items
+    if($type == 1 && $itemid != 0) {
+        $sql="SELECT * from item2ldap where itemid=$itemid";
+        $sth=db_execute($dbh,$sql);
+        $r=$sth->fetch(PDO::FETCH_ASSOC);
+        $sth->closeCursor();
+        $ldap_lastsync=$r['lastsync'];
+        if (trim($ldap_lastsync)) return $ldap_lastsync;
+        else return 1;
+    } else {
+        $sql="SELECT * from settings";
+        $sth=db_execute($dbh,$sql);
+        $r=$sth->fetch(PDO::FETCH_ASSOC);
+        $sth->closeCursor();
+        $ldap_lastsync=$r['ldap_lastsync_user'];
+        if (trim($ldap_lastsync)) return $ldap_lastsync;
+        else return 1;
+    }
+}
+
+function ldap_compare_sync_time($type=0,$itemid=0)
+{
+    global $dbh;
+    //Type 0 = Users
+    //Type 1 = Items
+    $sql="SELECT * from settings";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetch(PDO::FETCH_ASSOC);
+    $sth->closeCursor();
+
+    //Get delay from database
+    if ($type == 0) $delay=$r['ldap_sync_delay_user'];
+    elseif ($type == 1) $delay=$r['ldap_sync_delay_item'];
+    else $delay=0; //set delay to zero --> always sync
+
+    //Get last sync time
+    $lastsync = ldap_get_last_sync_time($type,$itemid);
+
+    //Make sure both variables are numeric
+    if (is_numeric($lastsync) && is_numeric($delay))
+    {
+        $now = time();
+        $lastsync_plus_delay = $lastsync + ($delay * 3600);
+        //Compare current time and lastync+delay time
+        if($now >= $lastsync_plus_delay) return TRUE;
+        else return FALSE;
+    }
+    else
+    {
+        return FALSE;
+    }
+}
+
+function ldap_update_sync_time_users()
+{
+    global $dbh;
+    $now = time();
+    $sql="UPDATE settings set ldap_lastsync_user='$now'";
+    $sth=db_exec($dbh,$sql);
 }
 
 ?>
