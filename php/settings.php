@@ -54,7 +54,6 @@ $sql="SELECT * FROM settings";
 $sth=$dbh->query($sql);
 $settings=$sth->fetchAll(PDO::FETCH_ASSOC);
 $settings=$settings[0];
-print_r($settings);
 
 echo "\n<form id='mainform' method=post  action='$scriptname?action=$action' enctype='multipart/form-data'  name='settingsfrm'>\n";
 
@@ -175,7 +174,7 @@ echo "\n<h1>".t("Settings")."</h1>\n";
     <tr><td class="tdt" title='Provide the full path to the switches directory within the SwitchMap directory.'><?php te("Path To Switchmap");?>:</td><td><input  class='input2 ' size=20 type=text name='switchmapdir' value="<?php echo $settings['switchmapdir']?>"></td></tr>
 
 -->
-    <tr><td colspan=2><h3><?php te("LDAP Login Settings"); ?></h3></td></tr>
+    <tr><td colspan=2><h3><?php te("LDAP Settings"); ?></h3></td></tr>
     <tr><td class="tdt"><?php te("Use LDAP");?>:</td> 
         <td><select  name='useldap'>
         <?php
@@ -185,7 +184,7 @@ echo "\n<h1>".t("Settings")."</h1>\n";
         <option value=0><?php echo t('No')?></option>
         <option <?php echo $s1?> value=1><?php echo t('Yes')?></option>
         </select>
-        (for authentication only, except user admin which is local)</td></tr>
+        Required for authentication and user/item sync, except user admin which is local</td></tr>
 
     <tr><td class="tdt"><?php te("LDAP Bind User");?>:</td>
         <td><input  class='input2 ' size=20 type=text name='ldap_binduser' value="<?php echo $settings['ldap_binduser']?>"> User who is able to connect with the LDAP-Server</td></tr>
@@ -208,7 +207,7 @@ echo "\n<h1>".t("Settings")."</h1>\n";
         <option value=2><?php echo t('Read Only')?></option>
         <option <?php echo $s0?> value=0><?php echo t('Full Access')?></option>
         </select>
-        (Permissions for new users logging in from LDAP for the first time)</td></tr>
+        Permissions for new users logging in from LDAP for the first time</td></tr>
 
     <tr><td colspan=2><h3><?php te("LDAP User & Item Sync"); ?></h3></td></tr>
     <tr><td class="tdt"><?php te("Use LDAP User & Item Sync");?>:</td>
