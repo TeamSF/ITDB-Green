@@ -1,0 +1,14 @@
+begin transaction;
+CREATE TABLE item2ldap (itemid INTEGER, dn, ou_full, ou_name, os, os_servicepack, os_version, lastsync INTEGER);
+alter table settings add column ldap_port integer default 389;
+alter table settings add column ldap_binduser;
+alter table settings add column ldap_bindpass;
+alter table settings add column ldap_allowed_logins;
+alter table settings add column ldap_new_user_type integer default 2;
+alter table settings add column useldapsync integer default 0;
+alter table settings add column ldap_lastsync_user integer default 0;
+alter table settings add column ldap_syncdelay_user integer default 24;
+alter table settings add column ldap_syncdelay_item integer default 2;
+alter table settings add column ldap_getcomputers;
+alter table settings add column ldap_getcomputers_filter;
+commit;
