@@ -518,8 +518,8 @@ function ldap_compare_sync_time($type=0,$itemid=0)
     $sth->closeCursor();
 
     //Get delay from database
-    if ($type == 0) $delay=$r['ldap_sync_delay_user'];
-    elseif ($type == 1) $delay=$r['ldap_sync_delay_item'];
+    if ($type == 0) $delay=$r['ldap_syncdelay_user'];
+    elseif ($type == 1) $delay=$r['ldap_syncdelay_item'];
     else $delay=0; //set delay to zero --> always sync
 
     //Get last sync time

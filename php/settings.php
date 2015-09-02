@@ -36,8 +36,8 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
   "', ldap_getcomputers='".trim($_POST['ldap_getcomputers']).
   "', ldap_getcomputers_filter='".trim($_POST['ldap_getcomputers_filter']).
   "', useldapsync='".$_POST['useldapsync'].
-  "', ldap_sync_delay_user='".trim($_POST['ldap_sync_delay_user']).
-  "', ldap_sync_delay_item='".trim($_POST['ldap_sync_delay_item']).
+  "', ldap_syncdelay_user='".trim($_POST['ldap_syncdelay_user']).
+  "', ldap_syncdelay_item='".trim($_POST['ldap_syncdelay_item']).
   "',".
        " lang='".$_POST['lang']."', ".
        //" switchmapenable='".$_POST['switchmapenable']."', switchmapdir='".$_POST['switchmapdir']."',".
@@ -54,6 +54,7 @@ $sql="SELECT * FROM settings";
 $sth=$dbh->query($sql);
 $settings=$sth->fetchAll(PDO::FETCH_ASSOC);
 $settings=$settings[0];
+print_r($settings);
 
 echo "\n<form id='mainform' method=post  action='$scriptname?action=$action' enctype='multipart/form-data'  name='settingsfrm'>\n";
 
@@ -209,7 +210,6 @@ echo "\n<h1>".t("Settings")."</h1>\n";
         </select>
         (Permissions for new users logging in from LDAP for the first time)</td></tr>
 
-<?php if ($settings['useldap']==1) { ?>
     <tr><td colspan=2><h3><?php te("LDAP User & Item Sync"); ?></h3></td></tr>
     <tr><td class="tdt"><?php te("Use LDAP User & Item Sync");?>:</td>
         <td><select  name='useldapsync'>
@@ -226,15 +226,14 @@ echo "\n<h1>".t("Settings")."</h1>\n";
     <tr><td class="tdt"><?php te("LDAP User filter");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_getusers_filter' value="<?php echo $settings['ldap_getusers_filter']?>"> e.g.: (&amp; (uid=*) (IsActive=TRUE))</td></tr>
     <tr><td class="tdt"><?php te("User sync delay (hours)");?>:</td>
-        <td><input  class='input2 ' size=20 type=text name='ldap_sync_delay_user' value="<?php echo $settings['ldap_sync_delay_user']?>"> Delay to wait before user accounts are synced again via LDAP</td></tr>
+        <td><input  class='input2 ' size=20 type=text name='ldap_syncdelay_user' value="<?php echo $settings['ldap_syncdelay_user']?>"> Delay to wait before user accounts are synced again via LDAP</td></tr>
     <tr><td class="tdt"><?php te("LDAP Search for computers");?>:</td>
         <td><input  class='input2 ' size=20 type=text name='ldap_getcomputers' value="<?php echo $settings['ldap_getcomputers']?>"> e.g.: ou=Server,dc=mydomain,dc=com</td></tr>
     <tr><td class="tdt"><?php te("LDAP Computer filter");?>:</td>
         <td><input  class='input2 ' size=20 type=text name='ldap_getcomputers_filter' value="<?php echo $settings['ldap_getcomputers_filter']?>"> e.g.: (&amp; (objectCategory=computer)
 (operatingSystem=*server*))</td></tr>
     <tr><td class="tdt"><?php te("Item sync delay (hours)");?>:</td>
-        <td><input  class='input2 ' size=20 type=text name='ldap_sync_delay_item' value="<?php echo $settings['ldap_sync_delay_item']?>"> Delay to wait before item data is synced again via LDAP</td></tr>
-<?php }; ?>
+        <td><input  class='input2 ' size=20 type=text name='ldap_syncdelay_item' value="<?php echo $settings['ldap_syncdelay_item']?>"> Delay to wait before item data is synced again via LDAP</td></tr>
 
 <tr>
 <td colspan=2>
