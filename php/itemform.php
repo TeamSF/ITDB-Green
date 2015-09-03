@@ -42,14 +42,6 @@
 
   });
 
-$(document).ready(function() {
-    <?php
-        if (isset($_POST['ou_name']) || isset($_POST['os']) ) { //if we came from ldap refresh
-	       echo "window.location=window.location;";
-        }
-    ?>
-});
-
 </SCRIPT>
 <?php 
 
@@ -101,6 +93,69 @@ $sql="SELECT items.* from items,itemtypes where ".
 $sth=$dbh->query($sql);
 $netitems=$sth->fetchAll(PDO::FETCH_ASSOC);
 
+//get ldap information of item
+if (getitemtypesoftwaresupportofitem($id,$dbh) && $settings['useldapsync'])
+{
+    //Get ldap data already stored in the database
+    $sql="SELECT * FROM item2ldap WHERE itemid='$id'";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $itdb_ldap_item_data = array_shift($r);
+    if (count($itdb_ldap_item_data) != 0) $found=$itdb_ldap_item_data['itemid'];
+    else $found=0;
+
+    //Based on last sync and sync delay update item data from ldap
+    $ldap_check=FALSE;
+    $ldap_update_data = ldap_compare_sync_time(1,$id);
+
+    //Check if we found something or not
+    if($found == $id)
+    {
+        $dn = $itdb_dn = $itdb_ldap_item_data['dn'];
+        $ou_full = $itdb_ou_full = $itdb_ldap_item_data['ou_full'];
+        $ou_name = $itdb_ou_name=$itdb_ldap_item_data['ou_name'];
+        $os = $itdb_os = $itdb_ldap_item_data['os'];
+        $os_servicepack = $itdb_os_servicepack=$itdb_ldap_item_data['os_servicepack'];
+        $os_version = $itdb_os_version = $itdb_ldap_item_data['os_version'];
+    }
+    else
+    {
+        $dn = $os = $os_servicepack = $os_version = FALSE;
+    }
+
+    if($ldap_update_data)
+    {
+        $ldap = connect_to_ldap_server($settings['ldap_server'],$settings['ldap_port'],$settings['ldap_binduser'],base64_decode($settings['ldap_bindpass']),$settings['ldap_dn']);
+        if ($ldap) {
+            $ldap_entries = get_entries_from_ldap_server($ldap,$settings['ldap_getcomputers'],$settings['ldap_getcomputers_filter'],1);
+            if($ldap_entries) {
+                $ldap_item_data = get_computer_info_from_ldap($_GET['id'],$ldap_entries,$settings['ldap_getcomputers']);
+                if(is_array($ldap_item_data))
+                {
+                    //Set values to the LDAP values when LDAP provides new values
+                    //Otherwise set new_var to FALSE
+                    $new_dn = $new_os = $new_os_servicepack = $new_os_version = TRUE;
+                    if ($dn != $ldap_item_data['dn'] && trim($ldap_item_data['dn'])) {
+                        $dn = $ldap_dn = $ldap_item_data['dn'];
+                        $ou_full = $ldap_ou_full=$ldap_item_data['ou_full'];
+                        $ou_name = $ldap_ou_name=$ldap_item_data['ou_name'];
+                    }
+                    else {
+                        $new_dn=FALSE;
+                    }
+                    if ($os != $ldap_item_data['os'] && trim($ldap_item_data['os'])) $os=$ldap_item_data['os']; else $new_os=FALSE;
+                    if ($os_servicepack != $ldap_item_data['os_sp'] && trim($ldap_item_data['os_sp'])) $os_servicepack=$ldap_item_data['os_sp']; else $new_os_servicepack=FALSE;
+                    if ($os_version != $ldap_item_data['os_ver'] && trim($ldap_item_data['os_ver'])) $os_version=$ldap_item_data['os_ver']; else $new_os_version=FALSE;
+                    $ldap_check=TRUE;
+                }
+            }
+        }
+    }
+}
+else
+{
+    $ldap_check=FALSE;
+}
 
 //change displayed form items in input fields
 if ($id=="new") {
@@ -540,8 +595,12 @@ else if ($action=="edititem") {
     if(getitemtypesoftwaresupportofitem($id,$dbh) && $settings['useldapsync'] && trim($dnsname))
     {
     ?>
+      <input type=hidden name='found_id' value='<?php echo $found?>'>
+      <input type=hidden name='ldap_check' value='<?php echo $ldap_check?>'>
+      <input type=hidden name='dn' value='<?php echo $dn?>'>
+      <input type=hidden name='ou_full' value='<?php echo $ou_full?>'>
       <tr><tr><td colspan=2 style='padding-top:10px'><h3>Active Directory</h3></td> </tr>
-    <?php if($new_dn) { ?>
+    <?php if($new_dn || !$dn) { ?>
       <tr><td class='tdt'><?php te("Org. Unit");?>:</td><td  title='Organizational Unit:<br><br>ITDB:<br><?php echo str_replace(",","<br>", $itdb_ou_full)?><br><br>LDAP:<br><?php echo str_replace(",","<br>", $ou_full)?>'>
       <input type=text size=15 value='<?php echo $ou_name?>' name='ou_name' readonly style="background:#efdbdb"></td> </tr>
     <?php } else { ?>
@@ -603,7 +662,7 @@ else if ($action=="edititem") {
     ?>
       <tr><tr><td colspan=2 style='padding-top:5x'><h3>Operating System</h3></td> </tr>
 
-    <?php if($new_os) { ?>
+    <?php if($new_os || !$os) { ?>
       <tr><td class='tdt'><?php te("OS");?>:</td><td  title='Operating System:<br><br>ITDB:<br><?php echo $itdb_os?><br><br>LDAP:<br><?php echo $os?>'>
       <input type=text size=15 value='<?php echo $os?>' name='os' readonly style="background:#efdbdb"></td> </tr>
     <?php } else { ?>
@@ -611,7 +670,7 @@ else if ($action=="edititem") {
       <input type=text size=15 value='<?php echo $os?>' name='os' readonly style="background:#ceefcc"></td> </tr>
     <?php } ?>
 
-    <?php if($new_os_servicepack) { ?>
+    <?php if($new_os_servicepack  || !$os_servicepack) { ?>
       <tr><td class='tdt'><?php te("Service Pack");?>:</td><td  title='Service Pack:<br><br>ITDB:<br><?php echo $itdb_os_servicepack?><br><br>LDAP:<br><?php echo $os_servicepack?>'>
       <input type=text size=15 value='<?php echo $os_servicepack?>' name='os_servicepack' readonly style="background:#efdbdb"></td> </tr>
     <?php } else { ?>
@@ -619,7 +678,7 @@ else if ($action=="edititem") {
       <input type=text size=15 value='<?php echo $os_servicepack?>' name='os_servicepack' readonly style="background:#ceefcc"></td> </tr>
     <?php } ?>
 
-    <?php if($new_os_version) { ?>
+    <?php if($new_os_version  || !$os_version) { ?>
       <tr><td class='tdt'><?php te("Version");?>:</td><td  title='OS Version:<br><br>ITDB:<br><?php echo $itdb_os_version?><br><br>LDAP:<br><?php echo $os_version?>'>
       <input type=text size=15 value='<?php echo $os_version?>' name='os_version' readonly style="background:#efdbdb"></td> </tr>
     <?php } else { ?>
