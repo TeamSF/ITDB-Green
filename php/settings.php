@@ -204,11 +204,59 @@ echo "\n<h1>".t("Settings")."</h1>\n";
 <div id="tab2" class="tab_content">
 
     <table class="tbl2" >
-    <tr><td colspan=2 title='Specify which actions will be added to the item log/journal'><h3><?php te("Item Log/Journal Settings"); ?></h3></td></tr>
+    <tr><td colspan=2 title='Select the actions which will be added to the item log/journal.<br><br>For security reasons only the user "admin" can change these settings!'><h3><?php te("Item Log/Journal Settings"); ?></h3></td></tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_user' value=0 checked=checked></td>
-        <td><?php te("Item added by user");?></td>
-        </tr>
+        <td style="width:25px"><input type=checkbox name='log_new_item' value=0 checked=checked></td>
+        <td><?php te("New items");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_serial' value=0 checked=checked></td>
+        <td><?php te("Serial or Service Tag");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_user' value=0 checked=checked></td>
+        <td><?php te("User / Resp. Person");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_status' value=0 checked=checked></td>
+        <td><?php te("Status");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_location' value=0 checked=checked></td>
+        <td><?php te("Location or Area/Room");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_rack' value=0 checked=checked></td>
+        <td><?php te("Rack or rack position");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_dnsname' value=0 checked=checked></td>
+        <td><?php te("DNS Name");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_macs' value=0 checked=checked></td>
+        <td><?php te("MACs");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item_ipv4_ipv6' value=0 checked=checked></td>
+        <td><?php te("IPv4 or IPv6");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item2item' value=0 checked=checked></td>
+        <td><?php te("Inter-Item associations");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item2inv' value=0 checked=checked></td>
+        <td><?php te("Invoice associations");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item2soft' value=0 checked=checked></td>
+        <td><?php te("Software associations");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_item2contract' value=0 checked=checked></td>
+        <td><?php te("Contract associations");?></td>
+    </tr>
     </table>
 
 </div><!-- /tab2 -->
