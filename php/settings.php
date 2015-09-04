@@ -2,7 +2,8 @@
 
 $(document).ready(function() {
 
-
+    $("#tabs").tabs();
+    $("#tabs").show();
 
 <?php
 if (isset($_POST['dateformat']) ) { //if we came from a post (save), refresh to show new language
@@ -50,6 +51,18 @@ echo "\n<form id='mainform' method=post  action='$scriptname?action=$action' enc
 echo "\n<h1>".t("Settings")."</h1>\n";
 ?>
 
+<div id="tabs">
+  <ul>
+  <li><a href="#tab1"><?php te("General Settings");?></a></li>
+  <li><a href="#tab2"><?php te("Item Log/Journal");?></a></li>
+  <!-- MORE SETTINGS TAB TO COME, E.G. CLONING OPTIONS (ITEMS, RACK, SOFTWARE, ETC), LDAP OPTIONS?!, DNS OPTIONS?!, THEME OPTION?!
+  <li><a href="#tab3"><?php te("Item Associations");?></a></li>
+  <li><a href="#tab4"><?php te("Software Associations");?></a></li>
+  <li><a href="#tab5"><?php te("Invoice Associations");?></a></li>
+  <li><a href="#tab6"><?php te("Upload Files");?></a></li> -->
+  </ul>
+
+<div id="tab1" class="tab_content">
     <table class="tbl2" >
     <tr><td colspan=2><h3><?php te("Settings"); ?></h3></td></tr>
     <tr><td class="tdt"><?php te("Company Title");?>:</td> 
@@ -184,7 +197,23 @@ echo "\n<h1>".t("Settings")."</h1>\n";
     <tr><td class="tdt"><?php te("LDAP User filter");?>:</td> 
         <td><input  class='input2 ' size=20 type=text name='ldap_getusers_filter' value="<?php echo $settings['ldap_getusers_filter']?>"> e.g.: (&amp; (uid=*) (IsActive=TRUE))</td></tr>
 
+    </table>
+</div><!-- /tab1 -->
 
+
+<div id="tab2" class="tab_content">
+
+    <table class="tbl2" >
+    <tr><td colspan=2 title='Specify which actions will be added to the item log/journal'><h3><?php te("Item Log/Journal Settings"); ?></h3></td></tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log_user' value=0 checked=checked></td>
+        <td><?php te("Item added by user");?></td>
+        </tr>
+    </table>
+
+</div><!-- /tab2 -->
+</div><!-- /tab container -->
+<table>
 <tr>
 <td colspan=2>
 <br>
