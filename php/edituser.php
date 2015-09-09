@@ -180,8 +180,8 @@ else
       <div  id='soft' class='relatedlist'><?php te("SOFTWARE");?></div>
       <?php
       if (is_numeric($id)) {
-        $sql="SELECT software.id, agents.title || ' ' || software.stitle || ' ' || software.sversion || '[ ".
-             " ID:' || software.id || ']' as txt ".
+        $sql="SELECT software.id, agents.title || ' ' || software.stitle || ' ' || software.sversion || ' [".
+             "ID:' || software.id || ']' as txt ".
              "FROM agents,users,software,soft2user WHERE ".
              " agents.id=software.manufacturerid AND users.id=soft2user.userid AND ".
              " soft2user.userid='$id' AND software.id=soft2user.softid";
