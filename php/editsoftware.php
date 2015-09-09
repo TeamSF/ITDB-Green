@@ -2,6 +2,7 @@
 
  $(document).ready(function() {
     $('input#itemsfilter').quicksearch('table#itemslisttbl tbody tr');
+     $('input#userfilter').quicksearch('table#userlisttbl tbody tr');
     $('input#invfilter').quicksearch('table#invlisttbl tbody tr');
     $('input#contrfilter').quicksearch('table#contrlisttbl tbody tr');
 
@@ -137,6 +138,19 @@ if (isset($_POST['id'])) { //if we came from a post (save) the update software
     db_exec($dbh,$sql);
   }
 
+  //user relations
+  if (!isset($_POST['userlnk'])) $userlnk=array();
+  else $userlnk=$_POST['userlnk'];
+  //update software - userlnk links
+  //remove old links for this object
+  $sql="DELETE FROM soft2user WHERE softid=$id";
+  db_exec($dbh,$sql);
+  //add new links for each checked checkbox
+  for ($i=0;$i<count($userlnk);$i++) {
+    $sql="INSERT INTO soft2user (softid,userid) values ($id,".$userlnk[$i].")";
+    db_exec($dbh,$sql);
+  }
+
   //contract relations
   if (!isset($_POST['contrlnk'])) $contrlnk=array();
   else $contrlnk=$_POST['contrlnk'];
@@ -209,6 +223,7 @@ else
   <ul>
   <li><a href="#tab1"><?php te("Software Data");?></a></li>
   <li><a href="#tab2"><?php te("Item Associations");?></a></li>
+  <li><a href="#tab6"><?php te("User Associations");?></a></li>
   <li><a href="#tab3"><?php te("Invoice Associations");?></a></li>
   <li><a href="#tab4"><?php te("Contract Associations");?></a></li>
   <li><a href="#tab5"><?php te("Upload Files");?></a></li>
@@ -291,17 +306,22 @@ else
 
   <?php 
   //licensetype
-  $t0="";$t1="";$t2="";
-  if (empty ($lictype) || $lictype=="0") {$t0="checked";$t1="";$t2="";}
-  if ($lictype=="1") {$t1="checked";$t0="";$t2="";}
-  if ($lictype=="2") {$t2="checked";$t0="";$t1="";}
+  $t0="";$t1="";$t2="";$t3="";$t4="";
+  if (empty ($lictype) || $lictype=="0") {$t0="checked";}
+  if ($lictype=="1") {$t1="checked";}
+  if ($lictype=="2") {$t2="checked";}
+  if ($lictype=="3") {$t3="checked";}
+  if ($lictype=="4") {$t4="checked";}
   ?>
     <tr>
-    <td class='tdt'>License Per:</td>
+    <td class='tdt'>License Type:</td>
     <td>
     <input style='width:10%' type=radio <?php echo $t0?> name='lictype' value='0'>Box
     <input style='width:10%' type=radio <?php echo $t1?> name='lictype' value='1'>CPU
     <input style='width:10%' type=radio <?php echo $t2?> name='lictype' value='2'>Core
+    </td></tr><tr><td class='tdt'></td><td>
+    <input style='width:10%' type=radio <?php echo $t3?> name='lictype' value='3'>User
+    <input style='width:10%' type=radio <?php echo $t4?> name='lictype' value='4'>Floating
     </td>
     </tr>
 
@@ -317,6 +337,7 @@ else
     <h3><?php te("Associations Overview");?></h3>
     <div style='text-align:center'>
       <span class="tita" onclick='showid("items");'><?php te("Items");?></span> |
+      <span class="tita" onclick='showid("users");'><?php te("Users");?></span> |
       <span class="tita" onclick='showid("invoices1");'><?php te("Invoices");?></span> |
       <span class="tita" onclick='showid("contracts");'><?php te("Contracts");?></span>
     </div>
@@ -339,6 +360,27 @@ else
         if ($i%2) $bcolor="#D9E3F6"; else $bcolor="#ffffff";
         $institems.="\t<div style='margin:0;padding:0;background-color:$bcolor'>".
                     "<a href='$scriptname?action=edititem&amp;id={$ri[$i]['id']}'>$x</a></div>\n";
+      }
+      echo $institems;
+    }
+    ?>
+
+   <div id='users' class='relatedlist'>USERS</div>
+    <?php
+    if (is_numeric($id)) {
+      //print a table row
+      $sql="SELECT users.id, users.username, users.userdesc FROM users,soft2user ".
+           " WHERE soft2user.userid=users.id AND soft2user.softid=$id";
+      $sthi=db_execute($dbh,$sql);
+      $ri=$sthi->fetchAll(PDO::FETCH_ASSOC);
+      $nitems=count($ri);
+      $institems="";
+      for ($i=0;$i<$nitems;$i++) {
+        //$d=strlen($ri[$i]['date'])?date($dateparam,$ri[$i]['date']):"";
+        $x=($i+1).": {$ri[$i]['userdesc']} ({$ri[$i]['username']}) [ID:{$ri[$i]['id']}]";
+        if ($i%2) $bcolor="#D9E3F6"; else $bcolor="#ffffff";
+        $institems.="\t<div style='margin:0;padding:0;background-color:$bcolor'>".
+                    "<a href='$scriptname?action=edituser&amp;id={$ri[$i]['id']}'>$x</a></div>\n";
       }
       echo $institems;
     }
@@ -494,8 +536,58 @@ else
   </tr>
   </table>
 
-</div><!-- tab2 -->
+</div><!-- tab6 -->
 
+<div id='tab6' class='tab_content'>
+
+  <h2>
+      <input style='color:#909090' id="userfilter" name="userfilter" class='filter'
+             value='Filter' onclick='this.style.color="#000"; this.value=""' size="20">
+	 <span style='font-weight:normal;' class='nres'></span>
+  </h2>
+
+  <?php
+  //////////////////////////////////////////////
+  //connect to Items
+  $sql=" SELECT COALESCE((SELECT userid from soft2user WHERE softid='$id' AND userid=users.id ),0) islinked , ".
+       " users.id, username,userdesc as userdesc ".
+       " FROM users ".
+       " ORDER BY islinked desc,username,userdesc";
+  $sth=db_execute($dbh,$sql);
+  ?>
+  <div style='margin-left:auto;margin-right:auto;' class='scrltblcontainer2'>
+     <table width='100%' class='tbl2 brdr sortable'  id='userlisttbl'>
+       <thead>
+          <tr><th width='5%'><?php te("Associated");?></th><th><?php te("ID");?></th><th><?php te("Username");?></th>
+              <th><?php te("User Description");?></th>
+          </tr>
+        </thead>
+        <tbody>
+  <?php
+
+  while ($ir=$sth->fetch(PDO::FETCH_ASSOC)) {
+    if ($ir['islinked']) {
+      $cls="class='bld'";
+    }
+    else
+      $cls="";
+
+    echo "<tr><td><input name='userlnk[]' value='".$ir['id']."' ";
+    if ($ir['islinked']) echo " checked ";
+    echo  " type='checkbox' /></td>".
+     "<td $cls><a title='Edit user {$ir['id']} in a new window' ".
+     "target=_blank href='$scriptname?action=edituser&amp;id=".$ir['id']."'><div class='editid'>";
+    echo $ir['id'];
+    echo "</div></a></td>".
+     "<td $cls>".$ir['username'].  "&nbsp;</td>".
+     "<td $cls>".$ir['userdesc'].  "&nbsp;</td></tr>\n";
+  }
+  ?>
+  </tbody>
+  </table>
+  </div>
+
+</div><!-- tab6-->
 
 <div id='tab3' class='tab_content'>
 
