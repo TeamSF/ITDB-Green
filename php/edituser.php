@@ -177,6 +177,27 @@ else
         echo $institems;
       }
       ?>
+      <div  id='soft' class='relatedlist'><?php te("SOFTWARE");?></div>
+      <?php
+      if (is_numeric($id)) {
+        $sql="SELECT software.id, agents.title || ' ' || software.stitle || ' ' || software.sversion || '[ ".
+             " ID:' || software.id || ']' as txt ".
+             "FROM agents,users,software,soft2user WHERE ".
+             " agents.id=software.manufacturerid AND users.id=soft2user.userid AND ".
+             " soft2user.userid='$id' AND software.id=soft2user.softid";
+        $sthi=db_execute($dbh,$sql);
+        $ri=$sthi->fetchAll(PDO::FETCH_ASSOC);
+        $nsoft=count($ri);
+        $usedsoft="";
+        for ($i=0;$i<$nsoft;$i++) {
+          $x=($i+1).": ".$ri[$i]['txt'];
+          if ($i%2) $bcolor="#D9E3F6"; else $bcolor="#ffffff";
+          $usedsoft.="\t<div style='margin:0;padding:0;background-color:$bcolor'>".
+                      "<a href='$scriptname?action=editsoftware&amp;id={$ri[$i]['id']}'>$x</a></div>\n";
+        }
+        echo $usedsoft;
+      }
+      ?>
       </div>
     </div>
 </td>
