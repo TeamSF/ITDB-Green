@@ -328,6 +328,9 @@ function deluser($userid,$dbh) {
   $sql="UPDATE items set userid=1 where userid='$userid'";
   $sth=db_exec($dbh,$sql);
 
+  $sql="DELETE from soft2user where userid='$userid'";
+  $sth=db_exec($dbh,$sql);
+
   $sql="DELETE from users where id='$userid'";
   $sth=db_exec($dbh,$sql);
 
