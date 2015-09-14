@@ -177,7 +177,7 @@ if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
         else {$i++;continue;}
 
         if ($$ldap_formvar == "") {
-          $$ldap_formvar="";
+          $$ldap_formvar="''";
           $set_ldap.="$ldap_formvar=".($$ldap_formvar).", ";
         }
         else {
