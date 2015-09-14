@@ -319,6 +319,7 @@ else
   <li><a href="#tab4"><?php te("Software Associations");?></a></li>
   <li><a href="#tab5"><?php te("Invoice Associations");?></a></li>
   <li><a href="#tab6"><?php te("Upload Files");?></a></li>
+  <li><a href="#tab7"><?php te("Associations Overview");?></a></li>
   </ul>
 
 <div id="tab1" class="tab_content">
@@ -811,7 +812,93 @@ else
     </table>
 </div><!-- tab6 -->
 
+<div id="tab7" class="tab_content">
 
+  <table class='tbl1' style='width:100%' >
+
+  <tr>
+
+  <td  style='vertical-align:top;' rowspan=2>
+    <h3><?php te("Associations Overview");?></h3>
+    <div style='text-align:center'>
+      <span class="tita" onclick='showid("items");'><?php te("Items");?></span> |
+      <span class="tita" onclick='showid("software");'><?php te("Software");?></span> |
+      <span class="tita" onclick='showid("invoices1");'><?php te("Invoices");?></span>
+    </div>
+
+    <div class="scrltblcontainer4" style='height:13em'>
+
+    <div  id='items' class='relatedlist'><?php te("ITEMS");?></div>
+    <?php
+    if (is_numeric($id)) {
+      //print a table row
+      $sql="SELECT items.id, agents.title || ' ' || items.model || ' [' || itemtypes.typedesc || ', ID:' || items.id || ']' as txt ".
+	   "FROM agents,items,contract2item,itemtypes WHERE ".
+	   " agents.id=items.manufacturerid AND items.itemtypeid=itemtypes.id AND ".
+           " contract2item.itemid=items.id AND contract2item.contractid='$id'";
+      $sthi=db_execute($dbh,$sql);
+      $ri=$sthi->fetchAll(PDO::FETCH_ASSOC);
+      $nitems=count($ri);
+      $institems="";
+      for ($i=0;$i<$nitems;$i++) {
+	$x=($i+1).": ".$ri[$i]['txt'];
+	if ($i%2) $bcolor="#D9E3F6"; else $bcolor="#ffffff";
+	$institems.="\t<div style='margin:0;padding:0;background-color:$bcolor'>".
+		    "<a href='$scriptname?action=edititem&amp;id={$ri[$i]['id']}'>$x</a></div>\n";
+      }
+      echo $institems;
+    }
+    ?>
+
+    <div  id='software' class='relatedlist'><?php te("SOFTWARE");?></div>
+    <?php
+    if (is_numeric($id)) {
+      //print a table row
+
+      $sql="SELECT software.id, agents.title || ' ' || software.stitle || ' '||software.sversion || ' [ID:' || software.id || ']' as txt ".
+	   "FROM agents,software,contract2soft WHERE ".
+	   " agents.id=software.manufacturerid AND contract2soft.softid=software.id AND contract2soft.contractid='$id'";
+      $sthi=db_execute($dbh,$sql);
+      $ri=$sthi->fetchAll(PDO::FETCH_ASSOC);
+      $nitems=count($ri);
+      $institems="";
+      for ($i=0;$i<$nitems;$i++) {
+	$x=($i+1).": ".$ri[$i]['txt'];
+	if ($i%2) $bcolor="#D9E3F6"; else $bcolor="#ffffff";
+	$institems.="\t<div style='margin:0;padding:0;background-color:$bcolor'>".
+		    "<a href='$scriptname?action=editsoftware&amp;id={$ri[$i]['id']}'>$x</a></div>\n";
+      }
+      echo $institems;
+    }
+    ?>
+
+    <div id='invoices1' class='relatedlist'><?php te("INVOICES");?></div>
+    <?php
+    if (is_numeric($id)) {
+      //print a table row
+      $sql="SELECT invoices.id, invoices.number, invoices.date FROM invoices,contract2inv ".
+	   " WHERE contract2inv.invid=invoices.id AND contract2inv.contractid='$id'";
+      $sthi=db_execute($dbh,$sql);
+      $ri=$sthi->fetchAll(PDO::FETCH_ASSOC);
+      $nitems=count($ri);
+      $institems="";
+      for ($i=0;$i<$nitems;$i++) {
+	$d=strlen($ri[$i]['date'])?date($dateparam,$ri[$i]['date']):"";
+	$x=($i+1).":  ({$ri[$i]['number']}) - $d [ID:{$ri[$i]['id']}]";
+	if ($i%2) $bcolor="#D9E3F6"; else $bcolor="#ffffff";
+	$institems.="\t<div style='margin:0;padding:0;background-color:$bcolor'>".
+		    "<a href='$scriptname?action=editinvoice&amp;id={$ri[$i]['id']}'>$x</a></div>\n";
+      }
+      echo $institems;
+    }
+    ?>
+    </div><!-- scrlbcontainer -->
+  </td>
+
+  </tr>
+  </table>
+
+</div><!-- /tab7 -->
 
 </div> <!-- tab container -->
 
