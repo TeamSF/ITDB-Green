@@ -21,9 +21,27 @@ if(!isset($userdata) || $userdata[0]['usertype'] == 1) { echo "You must have Adm
 /* Spiros Ioannou 2009-2010 , sivann _at_ gmail.com */
 
 if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the rack 
+
+  // Get all checked checkboxes to update log value in database
+  $log_post=0;
+  if (!empty($_POST['log1'])) $log_post+=(int)$_POST['log1'];
+  if (!empty($_POST['log2'])) $log_post+=(int)$_POST['log2'];
+  if (!empty($_POST['log4'])) $log_post+=(int)$_POST['log4'];
+  if (!empty($_POST['log8'])) $log_post+=(int)$_POST['log8'];
+  if (!empty($_POST['log16'])) $log_post+=(int)$_POST['log16'];
+  if (!empty($_POST['log32'])) $log_post+=(int)$_POST['log32'];
+  if (!empty($_POST['log64'])) $log_post+=(int)$_POST['log64'];
+  if (!empty($_POST['log128'])) $log_post+=(int)$_POST['log128'];
+  if (!empty($_POST['log256'])) $log_post+=(int)$_POST['log256'];
+  if (!empty($_POST['log512'])) $log_post+=(int)$_POST['log512'];
+  if (!empty($_POST['log1024'])) $log_post+=(int)$_POST['log1024'];
+  if (!empty($_POST['log2048'])) $log_post+=(int)$_POST['log2048'];
+  if (!empty($_POST['log4096'])) $log_post+=(int)$_POST['log4096'];
+
   $sql="UPDATE settings set companytitle='".trim($_POST['companytitle']).
   "', dateformat='".$_POST['dateformat'].
   "', currency='".$_POST['currency'].
+  "', log='".$log_post.
   "', useldap='".$_POST['useldap'].
   "', ldap_server='".trim($_POST['ldap_server']).
   "', ldap_dn='".trim($_POST['ldap_dn']).
@@ -203,58 +221,78 @@ echo "\n<h1>".t("Settings")."</h1>\n";
 
 <div id="tab2" class="tab_content">
 
+<?php
+//
+$log=$settings['log'];
+
+if (empty($log)) $log=0;
+$s1=($log&1)?"checked":"";
+$s2=($log&2)?"checked":"";
+$s4=($log&4)?"checked":"";
+$s8=($log&8)?"checked":"";
+$s16=($log&16)?"checked":"";
+$s32=($log&32)?"checked":"";
+$s64=($log&64)?"checked":"";
+$s128=($log&128)?"checked":"";
+$s256=($log&256)?"checked":"";
+$s512=($log&512)?"checked":"";
+$s1024=($log&1024)?"checked":"";
+$s2048=($log&2048)?"checked":"";
+$s4096=($log&4096)?"checked":"";
+
+?>
     <table class="tbl2" >
     <tr><td colspan=2 title='Select the actions which will be added to the item log/journal.<br><br>For security reasons only the user "admin" can change these settings!'><h3><?php te("Item Log/Journal Settings"); ?></h3></td></tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_new_item' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log1' value=1 <?php echo $s1?>></td>
         <td><?php te("New items");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_serial' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log2' value=2 <?php echo $s2?>></td>
         <td><?php te("Serial or Service Tag");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_user' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log4' value=4 <?php echo $s4?>></td>
         <td><?php te("User / Resp. Person");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_status' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log8' value=8 <?php echo $s8?>></td>
         <td><?php te("Status");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_location' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log16' value=16 <?php echo $s16?>></td>
         <td><?php te("Location or Area/Room");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_rack' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log32' value=32 <?php echo $s32?>></td>
         <td><?php te("Rack or rack position");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_dnsname' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log64' value=64 <?php echo $s64?>></td>
         <td><?php te("DNS Name");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_macs' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log128' value=128 <?php echo $s128?>></td>
         <td><?php te("MACs");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item_ipv4_ipv6' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log256' value=256 <?php echo $s256?>></td>
         <td><?php te("IPv4 or IPv6");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item2item' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log512' value=512 <?php echo $s512?>></td>
         <td><?php te("Inter-Item associations");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item2inv' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log1024' value=1024 <?php echo $s1024?>></td>
         <td><?php te("Invoice associations");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item2soft' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log2048' value=2048 <?php echo $s2048?>></td>
         <td><?php te("Software associations");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log_item2contract' value=0 checked=checked></td>
+        <td style="width:25px"><input type=checkbox name='log4096' value=4096 <?php echo $s4096?>></td>
         <td><?php te("Contract associations");?></td>
     </tr>
     </table>
