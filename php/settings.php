@@ -222,9 +222,10 @@ echo "\n<h1>".t("Settings")."</h1>\n";
 <div id="tab2" class="tab_content">
 
 <?php
-//
+//Read log value from database
 $log=$settings['log'];
 
+//Set checked attribute for checkboxes
 if (empty($log)) $log=0;
 $s1=($log&1)?"checked":"";
 $s2=($log&2)?"checked":"";
