@@ -128,6 +128,21 @@ if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
   if (!isset($_POST['invlnk'])) $invlnk=array();
 
 
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX BEGINN TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+// TODO:
+// - Aus Settings den Wert für log auslesen
+// - SQL-Queries bauen zum Vergleich zwischen AlterWert (aus Datenbank) und NeuerWert (mittels $_POST[Variablenname])
+// - SQL Insert für ausgewählte log-settings durchführen
+// - Meldungen einheitlich halten:
+//      "Item added by $_COOKIE['itdbuser']"
+//      "Hostname "NeuerWert" added by $_COOKIE['itdbuser']
+//      "Hostname updated from "AlterWert" to "NeuerWert" by $_COOKIE['itdbuser']
+//      "Hostname "AlterWert" removed by $_COOKIE['itdbuser']
+// - Generische Meldung "Updated by $_COOKIE['itdbuser']" (Zeilen 165 bis 181) entfernen (retire it)
+// - Eventuell manche SQL-Queries auslagern in model.php oder functions.php
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ENDE TODO XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX BEGINN LOG/JOURNAL TEIL XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   $sql="SELECT items.userid,users.username from users,items where userid=users.id and items.id='$id'";
   $sth=db_execute($dbh,$sql);
@@ -168,6 +183,7 @@ if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
     db_exec($dbh,$sql);
 //echo "HERE:($upstr,$ldesc), ($ldate,$ndate);";
   }
+// XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ENDE LOG/JOURNAL TEIL XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   //update item links
   //remove old links for this object
