@@ -275,6 +275,7 @@ if (!$demomode ) {
              setcookie("itdbuser",$username, time()+3600*24*60,$wscriptdir); //username
              $authstatus=1;
              $authmsg="User Authenticated";
+             session_start();
            }
            else { //wrong password
              $authstatus=0;
@@ -305,6 +306,7 @@ if (!$demomode ) {
       $authstatus=1;
       $authmsg="Welcome back ".$_COOKIE["itdbuser"];
       setcookie("itdbcookie1",$userdata[0]['cookie1'], time()+3600*24*2,$wscriptdir); //renew for two days
+      session_start();
     }
     else {
       $authstatus=0;

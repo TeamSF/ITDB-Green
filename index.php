@@ -229,7 +229,6 @@ if ($dlg && $authstatus) {
   exit;
 }
 
-session_start();
 echo $_SESSION["ldap_sync_error_container"];
 ?>
 
