@@ -22,26 +22,28 @@ if(!isset($userdata) || $userdata[0]['usertype'] == 1) { echo "You must have Adm
 
 if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the rack 
 
-  // Get all checked checkboxes to update log value in database
-  $log_post=0;
-  if (!empty($_POST['log1'])) $log_post+=(int)$_POST['log1'];
-  if (!empty($_POST['log2'])) $log_post+=(int)$_POST['log2'];
-  if (!empty($_POST['log4'])) $log_post+=(int)$_POST['log4'];
-  if (!empty($_POST['log8'])) $log_post+=(int)$_POST['log8'];
-  if (!empty($_POST['log16'])) $log_post+=(int)$_POST['log16'];
-  if (!empty($_POST['log32'])) $log_post+=(int)$_POST['log32'];
-  if (!empty($_POST['log64'])) $log_post+=(int)$_POST['log64'];
-  if (!empty($_POST['log128'])) $log_post+=(int)$_POST['log128'];
-  if (!empty($_POST['log256'])) $log_post+=(int)$_POST['log256'];
-  if (!empty($_POST['log512'])) $log_post+=(int)$_POST['log512'];
-  if (!empty($_POST['log1024'])) $log_post+=(int)$_POST['log1024'];
-  if (!empty($_POST['log2048'])) $log_post+=(int)$_POST['log2048'];
-  if (!empty($_POST['log4096'])) $log_post+=(int)$_POST['log4096'];
+  if($_COOKIE["itdbuser"] == "admin")
+  {
+    // Get all checked checkboxes to update log value in database
+    $log_post=0;
+    if (!empty($_POST['log1'])) $log_post+=(int)$_POST['log1'];
+    if (!empty($_POST['log2'])) $log_post+=(int)$_POST['log2'];
+    if (!empty($_POST['log4'])) $log_post+=(int)$_POST['log4'];
+    if (!empty($_POST['log8'])) $log_post+=(int)$_POST['log8'];
+    if (!empty($_POST['log16'])) $log_post+=(int)$_POST['log16'];
+    if (!empty($_POST['log32'])) $log_post+=(int)$_POST['log32'];
+    if (!empty($_POST['log64'])) $log_post+=(int)$_POST['log64'];
+    if (!empty($_POST['log128'])) $log_post+=(int)$_POST['log128'];
+    if (!empty($_POST['log256'])) $log_post+=(int)$_POST['log256'];
+    if (!empty($_POST['log512'])) $log_post+=(int)$_POST['log512'];
+    if (!empty($_POST['log1024'])) $log_post+=(int)$_POST['log1024'];
+    if (!empty($_POST['log2048'])) $log_post+=(int)$_POST['log2048'];
+    if (!empty($_POST['log4096'])) $log_post+=(int)$_POST['log4096'];
+  }
 
   $sql="UPDATE settings set companytitle='".trim($_POST['companytitle']).
   "', dateformat='".$_POST['dateformat'].
   "', currency='".$_POST['currency'].
-  "', log='".$log_post.
   "', useldap='".$_POST['useldap'].
   "', ldap_server='".trim($_POST['ldap_server']).
   "', ldap_dn='".trim($_POST['ldap_dn']).
@@ -52,6 +54,7 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
        //" switchmapenable='".$_POST['switchmapenable']."', switchmapdir='".$_POST['switchmapdir']."',".
        //" timeformat='".$_POST['timeformat']."', ".
        " timezone='".$_POST['timezone']."' ";
+  if($_COOKIE["itdbuser"] == "admin") $sql .= ", log='".$log_post."'";
   db_exec($dbh,$sql);
 
 }//save pressed
@@ -221,29 +224,32 @@ echo "\n<h1>".t("Settings")."</h1>\n";
 
 <div id="tab2" class="tab_content">
 
-<?php
-//Read log value from database
-$log=$settings['log'];
-
-//Set checked attribute for checkboxes
-if (empty($log)) $log=0;
-$s1=($log&1)?"checked":"";
-$s2=($log&2)?"checked":"";
-$s4=($log&4)?"checked":"";
-$s8=($log&8)?"checked":"";
-$s16=($log&16)?"checked":"";
-$s32=($log&32)?"checked":"";
-$s64=($log&64)?"checked":"";
-$s128=($log&128)?"checked":"";
-$s256=($log&256)?"checked":"";
-$s512=($log&512)?"checked":"";
-$s1024=($log&1024)?"checked":"";
-$s2048=($log&2048)?"checked":"";
-$s4096=($log&4096)?"checked":"";
-
-?>
     <table class="tbl2" >
     <tr><td colspan=2 title='Select the actions which will be added to the item log/journal.<br><br>For security reasons only the user "admin" can change these settings!'><h3><?php te("Item Log/Journal Settings"); ?></h3></td></tr>
+
+<?php
+if($_COOKIE["itdbuser"] == "admin") {
+    //Read log value from database
+    $log=$settings['log'];
+
+    //Set checked attribute for checkboxes
+    if (empty($log)) $log=0;
+    $s1=($log&1)?"checked":"";
+    $s2=($log&2)?"checked":"";
+    $s4=($log&4)?"checked":"";
+    $s8=($log&8)?"checked":"";
+    $s16=($log&16)?"checked":"";
+    $s32=($log&32)?"checked":"";
+    $s64=($log&64)?"checked":"";
+    $s128=($log&128)?"checked":"";
+    $s256=($log&256)?"checked":"";
+    $s512=($log&512)?"checked":"";
+    $s1024=($log&1024)?"checked":"";
+    $s2048=($log&2048)?"checked":"";
+    $s4096=($log&4096)?"checked":"";
+
+?>
+
     <tr>
         <td style="width:25px"><input type=checkbox name='log1' value=1 <?php echo $s1?>></td>
         <td><?php te("New items");?></td>
@@ -296,8 +302,14 @@ $s4096=($log&4096)?"checked":"";
         <td style="width:25px"><input type=checkbox name='log4096' value=4096 <?php echo $s4096?>></td>
         <td><?php te("Contract associations");?></td>
     </tr>
-    </table>
-
+<?php
+    }
+    else
+    {
+        echo "<tr><td colspan=2><big><b>Access Denied, only user 'admin' is allowed to change these settings!</b></big></td></tr>";
+    }
+?>
+</table>
 </div><!-- /tab2 -->
 </div><!-- /tab container -->
 <table>
