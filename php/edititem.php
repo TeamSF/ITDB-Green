@@ -363,6 +363,122 @@ if($log&256) { // added, removed or changed ipv4
     elseif ($newipv6!=$curripv6) $actions_entry[]="Updated IPv6 from {$curripv6} to {$newipv6}";
 }
 
+if($log&512) {
+    //Get current links and compare with new item links
+    $sql="SELECT itemid2 from itemlink where itemid1=$id";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $curriteminks=array();
+    for ($i=0;$i<count($r);$i++)
+    {
+        $curritemlinks[]=$r[$i]['itemid2'];
+    }
+
+    // Determine removed and added links
+    if(!is_array($itlnk)) $newitemlinks=array();
+    else $newitemlinks = $itlnk;
+    $removeditemlinks = array_values(array_diff($curritemlinks, $newitemlinks));
+    $addeditemlinks = array_values(array_diff($newitemlinks, $curritemlinks));
+
+    // Write messages to action log
+    for ($i=0;$i<count($removeditemlinks);$i++)
+    {
+        $actions_entry[]="Removed associated item #{$removeditemlinks[$i]}";
+    }
+
+    for ($i=0;$i<count($addeditemlinks);$i++)
+    {
+        $actions_entry[]="Added association with item #{$addeditemlinks[$i]}";
+    }
+}
+
+if($log&1024) {
+    //Get current links and compare with new item links
+    $sql="SELECT invid from item2inv where itemid=$id";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $currinvlinks=array();
+    for ($i=0;$i<count($r);$i++)
+    {
+        $currinvlinks[]=$r[$i]['invid'];
+    }
+
+    // Determine removed and added links
+     if(!is_array($invlnk)) $newinvlinks=array();
+    else $newinvlinks = $invlnk;
+    $removedinvlinks = array_values(array_diff($currinvlinks, $newinvlinks));
+    $addedinvlinks = array_values(array_diff($newinvlinks, $currinvlinks));
+
+    // Write messages to action log
+    for ($i=0;$i<count($removedinvlinks);$i++)
+    {
+        $actions_entry[]="Removed associated invoice #{$removedinvlinks[$i]}";
+    }
+
+    for ($i=0;$i<count($addedinvlinks);$i++)
+    {
+        $actions_entry[]="Added association with invoice #{$addedinvlinks[$i]}";
+    }
+}
+
+if($log&2048) {
+    //Get current links and compare with new item links
+    $sql="SELECT softid from item2soft where itemid=$id";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $currsoftlinks=array();
+    for ($i=0;$i<count($r);$i++)
+    {
+        $currsoftlinks[]=$r[$i]['softid'];
+    }
+
+    // Determine removed and added links
+    if(!is_array($softlnk)) $newsoftlinks=array();
+    else $newsoftlinks = $softlnk;
+    $removedsoftlinks = array_values(array_diff($currsoftlinks, $newsoftlinks));
+    $addedsoftlinks = array_values(array_diff($newsoftlinks, $currsoftlinks));
+
+    // Write messages to action log
+    for ($i=0;$i<count($removedsoftlinks);$i++)
+    {
+        $actions_entry[]="Removed associated software #{$removedsoftlinks[$i]}";
+    }
+
+    for ($i=0;$i<count($addedsoftlinks);$i++)
+    {
+        $actions_entry[]="Added association with software #{$addedsoftlinks[$i]}";
+    }
+}
+
+if($log&4096) {
+    //Get current links and compare with new item links
+    $sql="SELECT contractid from contract2item where itemid=$id";
+    $sth=db_execute($dbh,$sql);
+    $r=$sth->fetchAll(PDO::FETCH_ASSOC);
+    $currcontrlinks=array();
+    for ($i=0;$i<count($r);$i++)
+    {
+        $currcontrlinks[]=$r[$i]['contractid'];
+    }
+
+    // Determine removed and added links
+    if(!is_array($contrlnk)) $newcontrlinks=array();
+    else $newcontrlinks = $contrlnk;
+    $removedcontrlinks = array_values(array_diff($currcontrlinks, $newcontrlinks));
+    $addedcontrlinks = array_values(array_diff($newcontrlinks, $currcontrlinks));
+
+    // Write messages to action log
+    for ($i=0;$i<count($removedcontrlinks);$i++)
+    {
+        $actions_entry[]="Removed associated contract #{$removedcontrlinks[$i]}";
+    }
+
+    for ($i=0;$i<count($addedcontrlinks);$i++)
+    {
+        $actions_entry[]="Added association with contract #{$addedcontrlinks[$i]}";
+    }
+}
+
 foreach($actions_entry as $m)
 {
     $sql="INSERT into actions (itemid, actiondate,description,invoiceinfo,isauto,entrydate) values ".
