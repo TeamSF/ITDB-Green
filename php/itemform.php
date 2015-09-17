@@ -454,6 +454,7 @@ else if ($action=="edititem") {
 	$$x="SELECTED";
       ?>
       <select name='rackposdepth'  style='width:40%' title='<?php te("Depth of rack occupation. (F)ront, (M)iddle, (B)ack");?>'>
+      <option value=''><?php te("Select");?></option>
       <option <?php echo $s6?> value='6'>FM-</option>
       <option <?php echo $s3?> value='3'>-MB</option>
       <option <?php echo $s4?> value='4'>F--</option>
@@ -577,26 +578,29 @@ else if ($action=="edititem") {
       </tr>
       </table>
 
-
-        <td class='tdtop'>
+    <?php if ($id!="new") { ?>
+        <td class='tdtop' rowspan='2'>
       <table border='0' class=tbl2> <!-- Log/Journal -->
-      <tr><td colspan=2 ><h3><?php te("Log/Journal");?></h3></td></tr>
-
+      <tr><td colspan=2 style='min-width: 200px'>
+      <h3><?php te("Log/Journal");?><a href='<?php echo basename(__DIR__)."/";?>editactions.php?itemid=<?php echo $id; ?>&amp;detached=1'
+      onclick="window.open(this.href, '_blank', 'left=20,top=20,width=850,height=800,toolbar=1,resizable=1'); return false;">
+      <img src='images/detach.gif' title='Show full item log/journal in new window' border=0 style="position: absolute; margin-top:-4px" width="24" height="24"></a></h3></td></tr>
+      </table>
+      <div id="mainHolder" style="overflow: auto; max-height: 90%; max-width:450px">
+      <table border='0' class=tbl2>
+      <tr><th width=80px> Action Date</th><th>Description</th></tr>
     <?php
     $itemid=$_GET['id'];
-
-    $sql="SELECT * from actions where itemid=$itemid order by actiondate";
-
+    $sql="SELECT * from actions where itemid=$itemid order by actiondate desc limit 0, 20";
     $sth=db_execute($dbh,$sql);
-
-    echo "<tr><th>ID</th><th width=80px> Action Date</th><th>Description</th></tr>\n";
 
     $i=0;
     /// print actions list
     while ($r=$sth->fetch(PDO::FETCH_ASSOC)) {
     $i++;
         $d=strlen($r['actiondate'])?date($dateparam,$r['actiondate']):"-"; //seconds to d/m/y
-        echo "<td>{$r['id']}</td>\n";
+        $tr_class=($i&1)?"<tr class='odd'>":"<tr class='even'>";
+        echo $tr_class;
         echo "<td>$d</td>\n";
         echo "<td>{$r['description']}</td>\n";
         echo "</tr>\n\n";
@@ -606,9 +610,10 @@ else if ($action=="edititem") {
 
            </td></tr>
     </tr></table>
-
+</div>
 
     </td>
+    <?php } ?>
 
     </tr>
 
