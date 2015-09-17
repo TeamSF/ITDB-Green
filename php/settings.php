@@ -54,7 +54,10 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
        //" switchmapenable='".$_POST['switchmapenable']."', switchmapdir='".$_POST['switchmapdir']."',".
        //" timeformat='".$_POST['timeformat']."', ".
        " timezone='".$_POST['timezone']."' ";
-  if($_COOKIE["itdbuser"] == "admin") $sql .= ", log='".$log_post."'";
+  if($_COOKIE["itdbuser"] == "admin") {
+      $sql .= ", uselog='".$_POST['uselog']."'";
+      $sql .= ", log_actions='".$log_post."'";
+  }
   db_exec($dbh,$sql);
 
 }//save pressed
@@ -225,81 +228,93 @@ echo "\n<h1>".t("Settings")."</h1>\n";
 <div id="tab2" class="tab_content">
 
     <table class="tbl2" >
-    <tr><td colspan=2 title='Select the actions which will be added to the item log/journal.<br><br>For security reasons only the user "admin" can change these settings!'><h3><?php te("Item Log/Journal Settings"); ?></h3></td></tr>
+    <tr><td colspan=2 title='Select the actions which will be added to the item log/journal.<br><br>For security reasons only the user "admin" can change these settings!'>
+    <h3><?php te("Item Log/Journal Settings"); ?></h3>
+    </td></tr>
 
 <?php
 if($_COOKIE["itdbuser"] == "admin") {
     //Read log value from database
-    $log=$settings['log'];
+    $log=$settings['log_actions'];
 
     //Set checked attribute for checkboxes
     if (empty($log)) $log=0;
-    $s1=($log&1)?"checked":"";
-    $s2=($log&2)?"checked":"";
-    $s4=($log&4)?"checked":"";
-    $s8=($log&8)?"checked":"";
-    $s16=($log&16)?"checked":"";
-    $s32=($log&32)?"checked":"";
-    $s64=($log&64)?"checked":"";
-    $s128=($log&128)?"checked":"";
-    $s256=($log&256)?"checked":"";
-    $s512=($log&512)?"checked":"";
-    $s1024=($log&1024)?"checked":"";
-    $s2048=($log&2048)?"checked":"";
-    $s4096=($log&4096)?"checked":"";
+    $l1=($log&1)?"checked":"";
+    $l2=($log&2)?"checked":"";
+    $l4=($log&4)?"checked":"";
+    $l8=($log&8)?"checked":"";
+    $l16=($log&16)?"checked":"";
+    $l32=($log&32)?"checked":"";
+    $l64=($log&64)?"checked":"";
+    $l128=($log&128)?"checked":"";
+    $l256=($log&256)?"checked":"";
+    $l512=($log&512)?"checked":"";
+    $l1024=($log&1024)?"checked":"";
+    $l2048=($log&2048)?"checked":"";
+    $l4096=($log&4096)?"checked":"";
 
 ?>
-
+    <tr><td class="tdt"><?php te("Use Item Log/Journal");?>:</td>
+        <td><select name='uselog'>
+        <?php
+        if ($settings['uselog']==1) $s1='SELECTED';
+        else $s1='';
+        ?>
+        <option value=0><?php echo t('No')?></option>
+        <option <?php echo $s1?> value=1><?php echo t('Yes')?></option>
+        </select>
+    </td></tr>
+    </table><br><table>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log1' value=1 <?php echo $s1?>></td>
+        <td style="width:25px"><input type=checkbox name='log1' value=1 <?php echo $l1?>></td>
         <td><?php te("New items");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log2' value=2 <?php echo $s2?>></td>
-        <td><?php te("Serial or Service Tag");?></td>
-    </tr>
-    <tr>
-        <td style="width:25px"><input type=checkbox name='log4' value=4 <?php echo $s4?>></td>
+        <td style="width:25px"><input type=checkbox name='log2' value=2 <?php echo $l2?>></td>
         <td><?php te("User / Resp. Person");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log8' value=8 <?php echo $s8?>></td>
+        <td style="width:25px"><input type=checkbox name='log4' value=4 <?php echo $l4?>></td>
         <td><?php te("Status");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log16' value=16 <?php echo $s16?>></td>
+        <td style="width:25px"><input type=checkbox name='log8' value=8 <?php echo $l8?>></td>
+        <td><?php te("Serial or Service Tag");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log16' value=16 <?php echo $l16?>></td>
         <td><?php te("Location or Area/Room");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log32' value=32 <?php echo $s32?>></td>
+        <td style="width:25px"><input type=checkbox name='log32' value=32 <?php echo $l32?>></td>
         <td><?php te("Rack or rack position");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log64' value=64 <?php echo $s64?>></td>
+        <td style="width:25px"><input type=checkbox name='log64' value=64 <?php echo $l64?>></td>
         <td><?php te("DNS Name");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log128' value=128 <?php echo $s128?>></td>
+        <td style="width:25px"><input type=checkbox name='log128' value=128 <?php echo $l128?>></td>
         <td><?php te("MACs");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log256' value=256 <?php echo $s256?>></td>
+        <td style="width:25px"><input type=checkbox name='log256' value=256 <?php echo $l256?>></td>
         <td><?php te("IPv4 or IPv6");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log512' value=512 <?php echo $s512?>></td>
+        <td style="width:25px"><input type=checkbox name='log512' value=512 <?php echo $l512?>></td>
         <td><?php te("Inter-Item associations");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log1024' value=1024 <?php echo $s1024?>></td>
+        <td style="width:25px"><input type=checkbox name='log1024' value=1024 <?php echo $l1024?>></td>
         <td><?php te("Invoice associations");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log2048' value=2048 <?php echo $s2048?>></td>
+        <td style="width:25px"><input type=checkbox name='log2048' value=2048 <?php echo $l2048?>></td>
         <td><?php te("Software associations");?></td>
     </tr>
     <tr>
-        <td style="width:25px"><input type=checkbox name='log4096' value=4096 <?php echo $s4096?>></td>
+        <td style="width:25px"><input type=checkbox name='log4096' value=4096 <?php echo $l4096?>></td>
         <td><?php te("Contract associations");?></td>
     </tr>
 <?php
