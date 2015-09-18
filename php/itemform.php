@@ -603,8 +603,7 @@ else if ($action=="edititem") {
         $log_description = $r['description'];
         echo $tr_class;
         echo "<td>$d</td>\n";
-        //$log_description = str_replace("contract #", "<a href='index.php?action=editcontract&id=", $log_description);
-        echo "<td>{$log_description}</td>\n";
+        echo "<td>$log_description</td>\n";
         echo "</tr>\n\n";
     }
 ?>
