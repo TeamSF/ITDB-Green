@@ -368,7 +368,7 @@ if($log&512) {
     $sql="SELECT itemid2 from itemlink where itemid1=$id";
     $sth=db_execute($dbh,$sql);
     $r=$sth->fetchAll(PDO::FETCH_ASSOC);
-    $curriteminks=array();
+    $curritemlinks=array();
     for ($i=0;$i<count($r);$i++)
     {
         $curritemlinks[]=$r[$i]['itemid2'];
@@ -553,6 +553,7 @@ elseif (isset($_POST['itemtypeid']) && ($_GET['id']=="new")&&isvalidfrm()) {
   if ($locareaid=="") $locareaid="NULL";
   if ($rackid=="") $rackid="NULL";
   if ($rackposition=="") $rackposition="NULL";
+  if ($rackposdepth=="") $rackposdepth="NULL";
   if ($userid=="") $userid="NULL";
   $warrantymonths=(int)$warrantymonths;
   if (!$warrantymonths || !strlen($warrantymonths) || !is_integer($warrantymonths)) $warrantymonths="NULL";
