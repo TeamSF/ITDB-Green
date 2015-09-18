@@ -657,7 +657,7 @@ function theme() {
   global $dbh;
 
   $sql="SELECT * from settings";
-  $sth=db_execute($dbh,$sql);
+  $sth=db_execute($dbh,$sql,1);
   $r=$sth->fetch(PDO::FETCH_ASSOC);
   $sth->closeCursor();
   $theme=$r['theme'];
