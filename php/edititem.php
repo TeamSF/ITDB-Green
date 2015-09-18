@@ -260,7 +260,6 @@ if(!empty($rackid))
   $newrackmodel=$newrack['model'];
   $newrackusize=$newrack['usize']."U";
   $newrackname=$newracklabel.", ".$newrackusize." ".$newrackmodel;
-  print_r($newrack);
 }
 else
 {
@@ -404,7 +403,7 @@ if($log&1024) {
     }
 
     // Determine removed and added links
-     if(!is_array($invlnk)) $newinvlinks=array();
+    if(!is_array($invlnk)) $newinvlinks=array();
     else $newinvlinks = $invlnk;
     $removedinvlinks = array_values(array_diff($currinvlinks, $newinvlinks));
     $addedinvlinks = array_values(array_diff($newinvlinks, $currinvlinks));
