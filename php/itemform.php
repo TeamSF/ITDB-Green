@@ -600,9 +600,11 @@ else if ($action=="edititem") {
     $i++;
         $d=strlen($r['actiondate'])?date($dateparam,$r['actiondate']):"-"; //seconds to d/m/y
         $tr_class=($i&1)?"<tr class='odd'>":"<tr class='even'>";
+        $log_description = $r['description'];
         echo $tr_class;
         echo "<td>$d</td>\n";
-        echo "<td>{$r['description']}</td>\n";
+        //$log_description = str_replace("contract #", "<a href='index.php?action=editcontract&id=", $log_description);
+        echo "<td>{$log_description}</td>\n";
         echo "</tr>\n\n";
     }
 ?>
