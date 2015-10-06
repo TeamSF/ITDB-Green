@@ -517,7 +517,7 @@ if($log&4096) {
 foreach($actions_entry as $m)
 {
     $sql="INSERT into actions (itemid, actiondate,description,invoiceinfo,isauto,entrydate) values ".
-	 "($id,".time().",'".ucfirst($_COOKIE["itdbuser"])." ".htmlspecialchars($m,ENT_QUOTES,"UTF-8")."' , '',1,".time().")";
+	 "($id,".time().",'".ucfirst($_COOKIE["itdbuser"])." $m' , '',1,".time().")";
     db_exec($dbh,$sql);
 }
 
