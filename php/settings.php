@@ -39,6 +39,9 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
     if (!empty($_POST['log1024'])) $log_post+=(int)$_POST['log1024'];
     if (!empty($_POST['log2048'])) $log_post+=(int)$_POST['log2048'];
     if (!empty($_POST['log4096'])) $log_post+=(int)$_POST['log4096'];
+    if (!empty($_POST['log8192'])) $log_post+=(int)$_POST['log8192'];
+    if (!empty($_POST['log16384'])) $log_post+=(int)$_POST['log16384'];
+    if (!empty($_POST['log32768'])) $log_post+=(int)$_POST['log32768'];
   }
 
   $sql="UPDATE settings set companytitle='".trim($_POST['companytitle']).
@@ -253,6 +256,9 @@ if($_COOKIE["itdbuser"] == "admin") {
     $l1024=($log&1024)?"checked":"";
     $l2048=($log&2048)?"checked":"";
     $l4096=($log&4096)?"checked":"";
+    $l8192=($log&8192)?"checked":"";
+    $l16384=($log&16384)?"checked":"";
+    $l32768=($log&32768)?"checked":"";
 
 ?>
     <tr><td class="tdt"><?php te("Use Item Log/Journal");?>:</td>
@@ -293,12 +299,24 @@ if($_COOKIE["itdbuser"] == "admin") {
         <td><?php te("Serial or Service Tag");?></td>
     </tr>
     <tr>
+        <td style="width:25px"><input type=checkbox name='log8192' value=8192 <?php echo $l8192?>></td>
+        <td><?php te("Comments");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log16384' value=16384 <?php echo $l16384?>></td>
+        <td><?php te("Label");?></td>
+    </tr>
+    <tr>
         <td style="width:25px"><input type=checkbox name='log16' value=16 <?php echo $l16?>></td>
         <td><?php te("Location or Area/Room");?></td>
     </tr>
     <tr>
         <td style="width:25px"><input type=checkbox name='log32' value=32 <?php echo $l32?>></td>
         <td><?php te("Rack or rack position");?></td>
+    </tr>
+    <tr>
+        <td style="width:25px"><input type=checkbox name='log32768' value=32768 <?php echo $l32768?>></td>
+        <td><?php te("Warranty related info");?></td>
     </tr>
     <tr>
         <td style="width:25px"><input type=checkbox name='log64' value=64 <?php echo $l64?>></td>

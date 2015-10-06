@@ -136,7 +136,7 @@ if (isset($_POST['itemtypeid']) && ($_GET['id']!="new") && isvalidfrm()) {
 
 if($uselog) {
 // Get current info of item
-  $sql="SELECT sn,sn2,sn3,dnsname,macs,ipv4,ipv6,rackposition,rackposdepth FROM items where items.id='$id'";
+  $sql="SELECT sn,sn2,sn3,dnsname,macs,ipv4,ipv6,rackposition,rackposdepth,label,comments,purchasedate,warrantymonths,warrinfo FROM items where items.id='$id'";
   $sth=db_execute($dbh,$sql);
   $curriteminfo=$sth->fetchAll(PDO::FETCH_ASSOC);
   $curriteminfo=$curriteminfo[0];
@@ -150,17 +150,27 @@ if($uselog) {
   $curripv6=$curriteminfo['ipv6'];
   $currrackposition=$curriteminfo['rackposition'];
   $currrackposdepth=$curriteminfo['rackposdepth'];
+  $currlabel=$curriteminfo['label'];
+  $currcommments=$curriteminfo['comments'];
+  $currpurchasedate=strlen($curriteminfo['purchasedate'])?date($dateparam,$curriteminfo['purchasedate']):"";
+  $currwarrantymonths=$curriteminfo['warrantymonths'];
+  $currwarrinfo=$curriteminfo['warrinfo'];
 
 // Get new info of item
-  $newsn=$_POST['sn'];
-  $newsn2=$_POST['sn2'];
-  $newsn3=$_POST['sn3'];
-  $newdnsname=$_POST['dnsname'];
-  $newmacs=$_POST['macs'];
-  $newipv4=$_POST['ipv4'];
-  $newipv6=$_POST['ipv6'];
+  $newsn=trim($_POST['sn']);
+  $newsn2=trim($_POST['sn2']);
+  $newsn3=trim($_POST['sn3']);
+  $newdnsname=trim($_POST['dnsname']);
+  $newmacs=trim($_POST['macs']);
+  $newipv4=trim($_POST['ipv4']);
+  $newipv6=trim($_POST['ipv6']);
   $newrackposition=$_POST['rackposition'];
   $newrackposdepth=$_POST['rackposdepth'];
+  $newlabel=trim($_POST['label']);
+  $newcommments=trim($_POST['comments']);
+  $newpurchasedate=$_POST['purchasedate'];
+  $newwarrantymonths=trim($_POST['warrantymonths']);
+  $newwarrinfo=trim($_POST['warrinfo']);
 
 // Get current user of item
   $sql="SELECT items.userid,users.username from users,items where userid=users.id and items.id='$id'";
@@ -269,42 +279,54 @@ else
 
 $actions_entry=array();
 // changed user
-if ($log&2 && $userid!=$curruser['userid']) $actions_entry[]="Updated user from {$curruser['username']} to {$newuser['username']}";
+if ($log&2 && $userid!=$curruser['userid']) $actions_entry[]="updated user from {$curruser['username']} to {$newuser['username']}";
 
 // changed status
-if ($log&4 && $newstatus['id']!=$currstatus['status']) $actions_entry[]="Updated status from {$currstatus['statusdesc']} to {$newstatus['statusdesc']}";
+if ($log&4 && $newstatus['id']!=$currstatus['status']) $actions_entry[]="updated status from {$currstatus['statusdesc']} to {$newstatus['statusdesc']}";
 
 if($log&8) { // added, removed or changed serial 1
-    if($newsn!=$currsn && empty($currsn) && !empty($newsn)) $actions_entry[]="Added S/N {$newsn}";
-    elseif($newsn!=$currsn && !empty($currsn) && empty($newsn)) $actions_entry[]="Removed S/N {$currsn}";
-    elseif($newsn!=$currsn) $actions_entry[]="Updated S/N from {$currsn} to {$newsn}";
+    if($newsn!=$currsn && empty($currsn) && !empty($newsn)) $actions_entry[]="added S/N {$newsn}";
+    elseif($newsn!=$currsn && !empty($currsn) && empty($newsn)) $actions_entry[]="removed S/N {$currsn}";
+    elseif($newsn!=$currsn) $actions_entry[]="updated S/N from {$currsn} to {$newsn}";
 
     // added, removed or changed serial 2
-    if($newsn2!=$currsn2 && empty($currsn2) && !empty($newsn2)) $actions_entry[]="Added S/N 2 {$newsn2}";
-    elseif($newsn2!=$currsn2 && !empty($currsn2) && empty($newsn2)) $actions_entry[]="Removed S/N 2 {$currsn2}";
-    elseif($newsn2!=$currsn2) $actions_entry[]="Updated S/N 2 from {$currsn2} to {$newsn2}";
+    if($newsn2!=$currsn2 && empty($currsn2) && !empty($newsn2)) $actions_entry[]="added S/N 2 {$newsn2}";
+    elseif($newsn2!=$currsn2 && !empty($currsn2) && empty($newsn2)) $actions_entry[]="removed S/N 2 {$currsn2}";
+    elseif($newsn2!=$currsn2) $actions_entry[]="updated S/N 2 from {$currsn2} to {$newsn2}";
 
     // added, removed or changed serial 3
-    if($newsn3!=$currsn3 && empty($currsn3) && !empty($newsn3)) $actions_entry[]="Added S/N 3 {$newsn3}";
-    elseif($newsn3!=$currsn3 && !empty($currsn3) && empty($newsn3)) $actions_entry[]="Removed S/N 3 {$currsn3}";
-    elseif($newsn3!=$currsn3) $actions_entry[]="Updated S/N 3 from {$currsn3} to {$newsn3}";
+    if($newsn3!=$currsn3 && empty($currsn3) && !empty($newsn3)) $actions_entry[]="added S/N 3 {$newsn3}";
+    elseif($newsn3!=$currsn3 && !empty($currsn3) && empty($newsn3)) $actions_entry[]="removed S/N 3 {$currsn3}";
+    elseif($newsn3!=$currsn3) $actions_entry[]="updated S/N 3 from {$currsn3} to {$newsn3}";
+}
+
+if($log&8192) { // added, removed or changed comments
+    if($newcommments!=$currcommments && empty($currcommments) && !empty($newcommments)) $actions_entry[]="added comments {$newcommments}";
+    elseif($newcommments!=$currcommments && !empty($currcommments) && empty($newcommments)) $actions_entry[]="removed comments {$currcommments}";
+    elseif($newcommments!=$currcommments) $actions_entry[]="updated comments from {$currcommments} to {$newcommments}";
+}
+
+if($log&16384) { // added, removed or changed label
+    if($newlabel!=$currlabel && empty($currlabel) && !empty($newlabel)) $actions_entry[]="added label {$newlabel}";
+    elseif($newlabel!=$currlabel && !empty($currlabel) && empty($newlabel)) $actions_entry[]="removed label {$currlabel}";
+    elseif($newlabel!=$currlabel) $actions_entry[]="updated label from {$currlabel} to {$newlabel}";
 }
 
 if ($log&16) { //added, removed or changed location or area/room
-    if($newlocationid!=$currlocationid && empty($currlocationid) && !empty($newlocationid)) $actions_entry[]="Added location {$newlocationname}, {$newlocationfloor}";
-    elseif($newlocationid!=$currlocationid && !empty($currlocationid) && empty($newlocationid)) $actions_entry[]="Removed location {$currlocationname}, {$currlocationfloor}";
-    elseif($newlocationid!=$currlocationid && $newlocationname==$currlocationname) $actions_entry[]="Updated location from {$currlocationname}, {$currlocationfloor} to {$newlocationfloor}";
-    elseif($newlocationid!=$currlocationid && $newlocationname!=$currlocationname) $actions_entry[]="Updated location from {$currlocationname}, {$currlocationfloor} to {$newlocationname}, {$newlocationfloor}";
+    if($newlocationid!=$currlocationid && empty($currlocationid) && !empty($newlocationid)) $actions_entry[]="added location {$newlocationname}, {$newlocationfloor}";
+    elseif($newlocationid!=$currlocationid && !empty($currlocationid) && empty($newlocationid)) $actions_entry[]="removed location {$currlocationname}, {$currlocationfloor}";
+    elseif($newlocationid!=$currlocationid && $newlocationname==$currlocationname) $actions_entry[]="updated location from {$currlocationname}, {$currlocationfloor} to {$newlocationfloor}";
+    elseif($newlocationid!=$currlocationid && $newlocationname!=$currlocationname) $actions_entry[]="updated location from {$currlocationname}, {$currlocationfloor} to {$newlocationname}, {$newlocationfloor}";
 
-    if($newlocationareaid!=$currlocationarealocareaid && empty($currlocationarealocareaid) && !empty($newlocationareaid)) $actions_entry[]="Added area/room {$newlocationareaareaname}";
-    elseif($newlocationareaid!=$currlocationarealocareaid && !empty($currlocationarealocareaid) && empty($newlocationareaid)) $actions_entry[]="Removed area/room {$currlocationareaareaname}";
-    elseif($newlocationareaid!=$currlocationarealocareaid) $actions_entry[]="Updated area/room from {$currlocationareaareaname} to {$newlocationareaareaname}";
+    if($newlocationareaid!=$currlocationarealocareaid && empty($currlocationarealocareaid) && !empty($newlocationareaid)) $actions_entry[]="added area/room {$newlocationareaareaname}";
+    elseif($newlocationareaid!=$currlocationarealocareaid && !empty($currlocationarealocareaid) && empty($newlocationareaid)) $actions_entry[]="removed area/room {$currlocationareaareaname}";
+    elseif($newlocationareaid!=$currlocationarealocareaid) $actions_entry[]="updated area/room from {$currlocationareaareaname} to {$newlocationareaareaname}";
 }
 
 if ($log&32) { //added, removed or changed rack or rack position
-    if($newrackid!=$currrackid && empty($currrackid) && !empty($newrackid)) $actions_entry[]="Added rack {$newrackname}";
-    elseif($newrackid!=$currrackid && !empty($currrackid) && empty($newrackid)) $actions_entry[]="Removed rack {$currrackname}";
-    elseif($newrackid!=$currrackid) $actions_entry[]="Updated rack from {$currrackname} to {$newrackname}";
+    if($newrackid!=$currrackid && empty($currrackid) && !empty($newrackid)) $actions_entry[]="added rack {$newrackname}";
+    elseif($newrackid!=$currrackid && !empty($currrackid) && empty($newrackid)) $actions_entry[]="removed rack {$currrackname}";
+    elseif($newrackid!=$currrackid) $actions_entry[]="updated rack from {$currrackname} to {$newrackname}";
 
     $currrackposdepthlabel="";
     if($currrackposdepth == '6') $currrackposdepthlabel=" (FM-)";
@@ -330,36 +352,50 @@ if ($log&32) { //added, removed or changed rack or rack position
     elseif($newrackposdepth==$currrackposdepth) $rack_posdepth_msg=$currrackposdepthlabel;
     elseif($currrackposdepth!=$newrackposdepth) $rack_posdepth_msg=$newrackposdepthlabel;
 
-    if($newrackposition!=$currrackposition && empty($currrackposition) && !empty($newrackposition)) $actions_entry[]="Added rack position {$newrackposition}{$rack_posdepth_msg}";
-    elseif($newrackposition!=$currrackposition && !empty($currrackposition) && empty($newrackposition) && !empty($newrackposdepth)) $actions_entry[]="Removed rack position {$currrackposition}";
-    elseif($newrackposition!=$currrackposition && !empty($currrackposition) && empty($newrackposition) && empty($newrackposdepth)) $actions_entry[]="Removed rack position {$currrackposition}{$currrackposdepthlabel}";
-    elseif($newrackposition!=$currrackposition) $actions_entry[]="Updated rack position from {$currrackposition}{$currrackposdepthlabel} to {$newrackposition}{$newrackposdepthlabel}";
-    elseif($newrackposition==$currrackposition && empty($currrackposdepth) && !empty($newrackposdepth)) $actions_entry[]="Added rack position {$currrackposition} depth {$newrackposdepthlabel}";
-    elseif($newrackposition==$currrackposition && !empty($currrackposdepth) && empty($newrackposdepth)) $actions_entry[]="Removed rack position depth {$currrackposdepthlabel}";
-    elseif($newrackposition==$currrackposition && $newrackposdepth!=$currrackposdepth) $actions_entry[]="Updated rack position {$currrackposition} depth from {$currrackposdepthlabel} to {$newrackposdepthlabel}";
+    if($newrackposition!=$currrackposition && empty($currrackposition) && !empty($newrackposition)) $actions_entry[]="added rack position {$newrackposition}{$rack_posdepth_msg}";
+    elseif($newrackposition!=$currrackposition && !empty($currrackposition) && empty($newrackposition) && !empty($newrackposdepth)) $actions_entry[]="removed rack position {$currrackposition}";
+    elseif($newrackposition!=$currrackposition && !empty($currrackposition) && empty($newrackposition) && empty($newrackposdepth)) $actions_entry[]="removed rack position {$currrackposition}{$currrackposdepthlabel}";
+    elseif($newrackposition!=$currrackposition) $actions_entry[]="updated rack position from {$currrackposition}{$currrackposdepthlabel} to {$newrackposition}{$newrackposdepthlabel}";
+    elseif($newrackposition==$currrackposition && empty($currrackposdepth) && !empty($newrackposdepth)) $actions_entry[]="added rack position {$currrackposition} depth {$newrackposdepthlabel}";
+    elseif($newrackposition==$currrackposition && !empty($currrackposdepth) && empty($newrackposdepth)) $actions_entry[]="removed rack position depth {$currrackposdepthlabel}";
+    elseif($newrackposition==$currrackposition && $newrackposdepth!=$currrackposdepth) $actions_entry[]="updated rack position {$currrackposition} depth from {$currrackposdepthlabel} to {$newrackposdepthlabel}";
+}
+
+if($log&32768) { // added, removed or changed warranty related info
+    if($newpurchasedate!=$currpurchasedate && empty($currpurchasedate) && !empty($newpurchasedate)) $actions_entry[]="added date of purchase {$newpurchasedate}";
+    elseif($newpurchasedate!=$currpurchasedate && !empty($currpurchasedate) && empty($newpurchasedate)) $actions_entry[]="removed date of purchase {$currpurchasedate}";
+    elseif($newpurchasedate!=$currpurchasedate) $actions_entry[]="updated date of purchase from {$currpurchasedate} to {$newpurchasedate}";
+
+    if($newwarrantymonths!=$currwarrantymonths && empty($currwarrantymonths) && !empty($newwarrantymonths)) $actions_entry[]="added warranty months {$newwarrantymonths}";
+    elseif($newwarrantymonths!=$currwarrantymonths && !empty($currwarrantymonths) && empty($newwarrantymonths)) $actions_entry[]="removed warranty months {$currwarrantymonths}";
+    elseif($newwarrantymonths!=$currwarrantymonths) $actions_entry[]="updated warranty months from {$currwarrantymonths} to {$newwarrantymonths}";
+
+    if($newwarrinfo!=$currwarrinfo && empty($currwarrinfo) && !empty($newwarrinfo)) $actions_entry[]="added warranty info {$newwarrinfo}";
+    elseif($newwarrinfo!=$currwarrinfo && !empty($currwarrinfo) && empty($newwarrinfo)) $actions_entry[]="removed warranty info {$currwarrinfo}";
+    elseif($newwarrinfo!=$currwarrinfo) $actions_entry[]="updated warranty info from {$currwarrinfo} to {$newwarrinfo}";
 }
 
 if($log&64) { // added, removed or changed dnsname
-    if($newdnsname!=$currdnsname && empty($currdnsname) && !empty($newdnsname)) $actions_entry[]="Added DNS Name {$newdnsname}";
-    elseif($newdnsname!=$currdnsname && !empty($currdnsname) && empty($newdnsname)) $actions_entry[]="Removed DNS Name {$currdnsname}";
-    elseif($newdnsname!=$currdnsname) $actions_entry[]="Updated DNS Name from {$currdnsname} to {$newdnsname}";
+    if($newdnsname!=$currdnsname && empty($currdnsname) && !empty($newdnsname)) $actions_entry[]="added DNS name {$newdnsname}";
+    elseif($newdnsname!=$currdnsname && !empty($currdnsname) && empty($newdnsname)) $actions_entry[]="removed DNS name {$currdnsname}";
+    elseif($newdnsname!=$currdnsname) $actions_entry[]="updated DNS name from {$currdnsname} to {$newdnsname}";
 }
 
 if($log&128) { // added, removed or changed macs
-    if($newmacs!=$currmacs && empty($currmacs) && !empty($newmacs)) $actions_entry[]="Added MACs {$newmacs}";
-    elseif($newmacs!=$currmacs && !empty($currmacs) && empty($newmacs)) $actions_entry[]="Removed MACs {$currmacs}";
-    elseif($newmacs!=$currmacs) $actions_entry[]="Updated MACs from {$currmacs} to {$newmacs}";
+    if($newmacs!=$currmacs && empty($currmacs) && !empty($newmacs)) $actions_entry[]="added MACs {$newmacs}";
+    elseif($newmacs!=$currmacs && !empty($currmacs) && empty($newmacs)) $actions_entry[]="removed MACs {$currmacs}";
+    elseif($newmacs!=$currmacs) $actions_entry[]="updated MACs from {$currmacs} to {$newmacs}";
 }
 
 if($log&256) { // added, removed or changed ipv4
-    if($newipv4!=$curripv4 && empty($curripv4) && !empty($newipv4)) $actions_entry[]="Added IPv4 {$newipv4}";
-    elseif($newipv4!=$curripv4 && !empty($curripv4) && empty($newipv4)) $actions_entry[]="Removed IPv4 {$curripv4}";
-    elseif($newipv4!=$curripv4) $actions_entry[]="Updated IPv4 from {$curripv4} to {$newipv4}";
+    if($newipv4!=$curripv4 && empty($curripv4) && !empty($newipv4)) $actions_entry[]="added IPv4 {$newipv4}";
+    elseif($newipv4!=$curripv4 && !empty($curripv4) && empty($newipv4)) $actions_entry[]="removed IPv4 {$curripv4}";
+    elseif($newipv4!=$curripv4) $actions_entry[]="updated IPv4 from {$curripv4} to {$newipv4}";
 
     // added, removed or changed ipv6
-    if($newipv6!=$curripv6 && empty($curripv6) && !empty($newipv6)) $actions_entry[]="Added IPv6 {$newipv6}";
-    elseif($newipv6!=$curripv6 && !empty($curripv6) && empty($newipv6)) $actions_entry[]="Removed IPv6 {$curripv6}";
-    elseif ($newipv6!=$curripv6) $actions_entry[]="Updated IPv6 from {$curripv6} to {$newipv6}";
+    if($newipv6!=$curripv6 && empty($curripv6) && !empty($newipv6)) $actions_entry[]="added IPv6 {$newipv6}";
+    elseif($newipv6!=$curripv6 && !empty($curripv6) && empty($newipv6)) $actions_entry[]="removed IPv6 {$curripv6}";
+    elseif ($newipv6!=$curripv6) $actions_entry[]="updated IPv6 from {$curripv6} to {$newipv6}";
 }
 
 if($log&512) {
@@ -382,12 +418,12 @@ if($log&512) {
     // Write messages to action log
     for ($i=0;$i<count($removeditemlinks);$i++)
     {
-        $actions_entry[]="Removed associated item #{$removeditemlinks[$i]}";
+        $actions_entry[]="removed associated item #{$removeditemlinks[$i]}";
     }
 
     for ($i=0;$i<count($addeditemlinks);$i++)
     {
-        $actions_entry[]="Added association with item #{$addeditemlinks[$i]}";
+        $actions_entry[]="added association with item #{$addeditemlinks[$i]}";
     }
 }
 
@@ -411,12 +447,12 @@ if($log&1024) {
     // Write messages to action log
     for ($i=0;$i<count($removedinvlinks);$i++)
     {
-        $actions_entry[]="Removed associated invoice #{$removedinvlinks[$i]}";
+        $actions_entry[]="removed associated invoice #{$removedinvlinks[$i]}";
     }
 
     for ($i=0;$i<count($addedinvlinks);$i++)
     {
-        $actions_entry[]="Added association with invoice #{$addedinvlinks[$i]}";
+        $actions_entry[]="added association with invoice #{$addedinvlinks[$i]}";
     }
 }
 
@@ -440,12 +476,12 @@ if($log&2048) {
     // Write messages to action log
     for ($i=0;$i<count($removedsoftlinks);$i++)
     {
-        $actions_entry[]="Removed associated software #{$removedsoftlinks[$i]}";
+        $actions_entry[]="removed associated software #{$removedsoftlinks[$i]}";
     }
 
     for ($i=0;$i<count($addedsoftlinks);$i++)
     {
-        $actions_entry[]="Added association with software #{$addedsoftlinks[$i]}";
+        $actions_entry[]="added association with software #{$addedsoftlinks[$i]}";
     }
 }
 
@@ -469,19 +505,19 @@ if($log&4096) {
     // Write messages to action log
     for ($i=0;$i<count($removedcontrlinks);$i++)
     {
-        $actions_entry[]="Removed associated contract #{$removedcontrlinks[$i]}";
+        $actions_entry[]="removed associated contract #{$removedcontrlinks[$i]}";
     }
 
     for ($i=0;$i<count($addedcontrlinks);$i++)
     {
-        $actions_entry[]="Added association with contract #{$addedcontrlinks[$i]}";
+        $actions_entry[]="added association with contract #{$addedcontrlinks[$i]}";
     }
 }
 
 foreach($actions_entry as $m)
 {
     $sql="INSERT into actions (itemid, actiondate,description,invoiceinfo,isauto,entrydate) values ".
-	 "($id,".time().",'$m by {$_COOKIE["itdbuser"]}' , '',1,".time().")";
+	 "($id,".time().",'".ucfirst($_COOKIE["itdbuser"])." ".htmlspecialchars($m,ENT_QUOTES,"UTF-8")."' , '',1,".time().")";
     db_exec($dbh,$sql);
 }
 
@@ -625,7 +661,7 @@ elseif (isset($_POST['itemtypeid']) && ($_GET['id']=="new")&&isvalidfrm()) {
   {
   //add new action entry
   $sql="INSERT into actions (itemid, actiondate,description,invoiceinfo,isauto,entrydate) values ".
-       "($lastid,".time().",'Item #$id added by {$_COOKIE["itdbuser"]}' , '',1,".time().")";
+       "($lastid,".time().",'".ucfirst($_COOKIE["itdbuser"])." added Item #$id' , '',1,".time().")";
   db_exec($dbh,$sql);
   }
 
