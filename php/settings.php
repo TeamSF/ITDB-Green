@@ -56,6 +56,7 @@ if (isset($_POST['dateformat']) ) { //if we came from a post (save), update the 
        " timezone='".$_POST['timezone']."' ";
   if($_COOKIE["itdbuser"] == "admin") {
       $sql .= ", uselog='".$_POST['uselog']."'";
+      $sql .= ", log_show_itemdata='".$_POST['log_show_itemdata']."'";
       $sql .= ", log_actions='".$log_post."'";
   }
   db_exec($dbh,$sql);
@@ -258,6 +259,16 @@ if($_COOKIE["itdbuser"] == "admin") {
         <td><select name='uselog'>
         <?php
         if ($settings['uselog']==1) $s1='SELECTED';
+        else $s1='';
+        ?>
+        <option value=0><?php echo t('No')?></option>
+        <option <?php echo $s1?> value=1><?php echo t('Yes')?></option>
+        </select>
+    </td></tr>
+    <tr><td class="tdt"><?php te("Show Log under Item Data");?>:</td>
+        <td><select name='log_show_itemdata'>
+        <?php
+        if ($settings['log_show_itemdata']==1) $s1='SELECTED';
         else $s1='';
         ?>
         <option value=0><?php echo t('No')?></option>

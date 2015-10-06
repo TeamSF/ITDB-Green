@@ -578,7 +578,7 @@ else if ($action=="edititem") {
       </tr>
       </table>
 
-    <?php if ($id!="new") { ?>
+    <?php if ($id!="new" && $settings['log_show_itemdata']) { ?>
         <td class='tdtop' rowspan='2'>
       <table border='0' class=tbl2> <!-- Log/Journal -->
       <tr><td colspan=2 style='min-width: 200px'>
