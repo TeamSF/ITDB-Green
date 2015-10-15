@@ -29,6 +29,25 @@ if (isset($_POST['labelaction']) && $_POST['labelaction']=="savepreset") {
   }
 }
 
+if (isset($_POST['designaction']) && $_POST['designaction']=="savedesign") {
+  if (!strlen($_POST['designname'])) {
+    echo "<b><big>Not saved: specity design name!</big></b>";
+  }
+  else {
+
+    foreach($_POST as $k => $v) {
+		${$k} = $v;
+    }
+
+    $sql="INSERT INTO labeldesigns ".
+    " (designname,rowbarcode,row1text, row1value, row2text, row2value, row3text, row3value, row4text, row4value,  ".
+    " row5text, row5value, row6text, row6value, row7text, row7value, row8text, row8value) ".
+    " values ('$designname','$rowbarcode','$row1text', '$row1value', '$row2text', '$row2value', '$row3text', '$row3value', '$row4text', '$row4value', ".
+    " '$row5text', '$row5value', '$row6text', '$row6value','$row7text', '$row7value', '$row8text', '$row8value' )";
+    $sth=db_execute($dbh,$sql);
+  }
+}
+
 if (!isset($initok)) {echo "do not run this script directly";exit;}
 
 ?>
@@ -72,6 +91,30 @@ function ldata(rows,cols,lwidth,lheight, vpitch, hpitch, tmargin, bmargin, lmarg
   $('#theimage').attr('src',$('#iimage').val());
 
 }
+
+function ldesigndata(designname,rowbarcode,row1text,row1value,row2text,row2value,row3text,row3value,row4text,row4value,
+               row5text,row5value,row6text,row6value,row7text,row7value,row8text,row8value)
+{
+  document.seldesignfrm.designname.value=designname;
+  document.seldesignfrm.rowbarcode.value=rowbarcode;
+  document.seldesignfrm.row1text.value=row1text;
+  document.seldesignfrm.row1value.value=row1value;
+  document.seldesignfrm.row2text.value=row2text;
+  document.seldesignfrm.row2value.value=row2value;
+  document.seldesignfrm.row3text.value=row3text;
+  document.seldesignfrm.row3value.value=row3value;
+  document.seldesignfrm.row4text.value=row4text;
+  document.seldesignfrm.row4value.value=row4value;
+  document.seldesignfrm.row5text.value=row5text;
+  document.seldesignfrm.row5value.value=row5value;
+  document.seldesignfrm.row6text.value=row6text;
+  document.seldesignfrm.row6value.value=row6value;
+  document.seldesignfrm.row7text.value=row7text;
+  document.seldesignfrm.row7value.value=row7value;
+  document.seldesignfrm.row8text.value=row8text;
+  document.seldesignfrm.row8value.value=row8value;
+}
+
 $(document).ready(function() {
 
     $("#tabs").tabs();
@@ -121,6 +164,12 @@ $(document).ready(function() {
       $('#selitemsfrm').submit();
     });
 
+    $('#savedesign').click(function(e) {
+      $("#seldesignfrm").attr("action", "?action=printlabels");
+      $("#frmdesignaction").val("savedesign");
+      $('#seldesignfrm').submit();
+    });
+
     $('#iimage').keyup(function() {
       $('#theimage').attr('src',$('#iimage').val());
     });
@@ -142,6 +191,14 @@ if (isset($_GET['delpaperid'])) {
   $sth=db_exec($dbh,$sql);
   echo "<script>document.location='$scriptname?action=$action'</script>\n";
   echo "<a href='$scriptdir?action=$action'>Go here</a>\n</body></html>"; 
+  exit;
+}
+
+if (isset($_GET['deldesignid'])) {
+  $sql="DELETE from labeldesigns where id=".$_GET['deldesignid'];
+  $sth=db_exec($dbh,$sql);
+  echo "<script>document.location='$scriptname?action=$action'</script>\n";
+  echo "<a href='$scriptdir?action=$action'>Go here</a>\n</body></html>";
   exit;
 }
 
@@ -427,6 +484,172 @@ echo "</select>\n</td></tr>\n";
 
 </div><!-- container -->
 
+<?php
+
+$sql="SELECT * from labeldesigns";
+$sth=$dbh->query($sql);
+$alldesigns=$sth->fetchAll(PDO::FETCH_ASSOC);
+for ($i=0;$i<count($alldesigns);$i++) {
+  $labeldesigns[$alldesigns[$i]['id']]=$alldesigns[$i];
+}
+
+if (!isset($_POST['designname'])) {
+  foreach(array_keys($alldesigns[0]) as $key) {
+    $$key=$alldesigns[0][$key];
+  }
+}
+
+?>
+<form method=post id='seldesignfrm' name='seldesignfrm'>
+<div class=blue style='float:left;margin-left:10px;'>
+<table class='propstable' border=0>
+<caption>Label design:</caption>
+<th title="Change the design of your item label here. You can add free text and values based on item data to your label.">Property</th>
+<th title="Change the design of your item label here. You can add free text and values based on item data to your label.">Value</th>
+<tr>
+    <td class='tdt'><design for=designname>Design Name:</design></td><td><input size=8 value='<?php echo $designname?>' name=designname></td></tr>
+</tr>
+<tr>
+    <td class='tdt' title="Select above which row the QR Barcode will be placed."><design for=rowbarcode><?php te("QR Barcode");?>:</design></td>
+    <td><select name='rowbarcode'>
+      <option value='1' <?php if($rowbarcode==1) echo "SELECTED"; ?>><?php echo te('Row 1') ?></option>
+      <option value='2' <?php if($rowbarcode==2) echo "SELECTED"; ?>><?php echo te('Row 2') ?></option>
+      <option value='3' <?php if($rowbarcode==3) echo "SELECTED"; ?>><?php echo te('Row 3') ?></option>
+      <option value='4' <?php if($rowbarcode==4) echo "SELECTED"; ?>><?php echo te('Row 4') ?></option>
+      <option value='5' <?php if($rowbarcode==5) echo "SELECTED"; ?>><?php echo te('Row 5') ?></option>
+      <option value='6' <?php if($rowbarcode==6) echo "SELECTED"; ?>><?php echo te('Row 6') ?></option>
+      <option value='7' <?php if($rowbarcode==7) echo "SELECTED"; ?>><?php echo te('Row 7') ?></option>
+      <option value='8' <?php if($rowbarcode==8) echo "SELECTED"; ?>><?php echo te('Row 8') ?></option>
+      <option value='9' <?php if($rowbarcode==9) echo "SELECTED"; ?>><?php echo te('Below Row 8') ?></option>
+    </select>
+    </td>
+</tr>
+<?php
+
+// Go thru all rows for label design
+for ($i=1;$i<9;$i++)
+{
+    //For each row go thru all dropdown options and find out which is selected
+    for ($j=0;$j<11;$j++)
+    {
+        if (${'row'.$i.'value'} == $j) ${'r'.$i.'_s'.$j}="SELECTED";
+        else ${'r'.$i.'_s'.$j}='';
+    }
+
+    //Output variables for select dropdowns
+    ${'design_options_'.$i}="<option value=''>".t(Select)."</option>".
+      "<option value='0' ".${'r'.$i.'_s0'}.">".t(ID)."</option>".
+      "<option value='1' ".${'r'.$i.'_s1'}.">".t('Header Text')."</option>".
+      "<option value='2' ".${'r'.$i.'_s2'}.">".t(Label)."</option>".
+      "<option value='3' ".${'r'.$i.'_s3'}.">".t(Serial)."</option>".
+      "<option value='4' ".${'r'.$i.'_s4'}.">".t('Serial 2')."</option>".
+      "<option value='5' ".${'r'.$i.'_s5'}.">".t('Service Tag')."</option>".
+      "<option value='6' ".${'r'.$i.'_s6'}.">".t(Manufacturer)." ".t(Model)."</option>".
+      "<option value='7' ".${'r'.$i.'_s7'}.">".t(Manufacturer)."</option>".
+      "<option value='8' ".${'r'.$i.'_s8'}.">".t(Model)."</option>".
+      "<option value='9' ".${'r'.$i.'_s9'}.">".t('DNS Name')."</option>".
+      "<option value='10' ".${'r'.$i.'_s10'}.">".t(IPv4)."</option>";
+}
+?>
+<tr>
+    <td class='tdt'><design for=row1><?php te("Row 1");?>:</design></td>
+    <td><input size=8 value='<?php echo $row1text?>' name=row1text>
+    <select name='row1value'>
+    <?php echo $design_options_1; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row2><?php te("Row 2");?>:</design></td>
+    <td><input size=8 value='<?php echo $row2text?>' name=row2text>
+    <select name='row2value'>
+    <?php echo $design_options_2; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row3><?php te("Row 3");?>:</design></td>
+    <td><input size=8 value='<?php echo $row3text?>' name=row3text>
+    <select name='row3value'>
+    <?php echo $design_options_3; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row4><?php te("Row 4");?>:</design></td>
+    <td><input size=8 value='<?php echo $row4text?>' name=row4text>
+    <select name='row4value'>
+    <?php echo $design_options_4; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row5><?php te("Row 5");?>:</design></td>
+    <td><input size=8 value='<?php echo $row5text?>' name=row5text>
+    <select name='row5value'>
+    <?php echo $design_options_5; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row6><?php te("Row 6");?>:</design></td>
+    <td><input size=8 value='<?php echo $row6text?>' name=row6text>
+    <select name='row6value'>
+    <?php echo $design_options_6; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row7><?php te("Row 7");?>:</design></td>
+    <td><input size=8 value='<?php echo $row7text?>' name=row7text>
+    <select name='row7value'>
+    <?php echo $design_options_7; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdt'><design for=row8><?php te("Row 8");?>:</design></td>
+    <td><input size=8 value='<?php echo $row8text?>' name=row8text>
+    <select name='row8value'>
+    <?php echo $design_options_8; ?>
+    </select>
+    </td>
+</tr>
+<tr>
+    <td class='tdc' colspan=2><br><input id='savedesign' value='Save as new Design' name='savedesign' type=submit><br><br><br></td>
+    <input type='hidden' name='designaction' id='frmdesignaction' value=''>
+</tr>
+<tr>
+    <th colspan=2>Designs</th>
+</tr>
+    <tr><td style='vertical-align:top;' colspan=2 align=left>
+<?php
+//ldata(rows,cols,lwidth,lheight, vpitch, hpitch, tmargin, bmargin, lmargin, rmargin)
+if (isset($labeldesigns))
+foreach ($labeldesigns as $ld) {
+  //echo $lp['id'];
+  echo "\n<a href='javascript:ldesigndata(\"{$ld['designname']}\", ".
+       "{$ld['rowbarcode']}, ".
+       "\"{$ld['row1text']}\", \"{$ld['row1value']}\", ".
+       "\"{$ld['row2text']}\", \"{$ld['row2value']}\", ".
+       "\"{$ld['row3text']}\", \"{$ld['row3value']}\", ".
+       "\"{$ld['row4text']}\", \"{$ld['row4value']}\", ".
+       "\"{$ld['row5text']}\", \"{$ld['row5value']}\", ".
+       "\"{$ld['row6text']}\", \"{$ld['row6value']}\", ".
+       "\"{$ld['row7text']}\", \"{$ld['row7value']}\", ".
+       "\"{$ld['row8text']}\", \"{$ld['row8value']}\"".
+       ")'>{$ld['designname']}</a>";
+
+  echo " <a href='javascript:delconfirm(\"{$ld['id']}\",".
+       "\"$scriptname?action=$action&amp;deldesignid={$ld['id']}\");'><img src='images/delete.png'></a><br>\n";
+}
+?>
+<br></td></tr>
+<tr><th colspan=2>Example</th></tr>
+<tr><td class='tdc' colspan=2><img width=180 src='images/labelinfo.jpg'></td></tr>
+</table>
+</div>
+</form>
 
 </body>
 </html>
