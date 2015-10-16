@@ -530,7 +530,7 @@ if (!isset($_POST['designname'])) {
 for ($i=1;$i<9;$i++)
 {
     //For each row go thru all dropdown options and find out which is selected
-    for ($j=0;$j<11;$j++)
+    for ($j=0;$j<12;$j++)
     {
         if (${'row'.$i.'value'} == $j) ${'r'.$i.'_s'.$j}="SELECTED";
         else ${'r'.$i.'_s'.$j}='';
@@ -549,6 +549,7 @@ for ($i=1;$i<9;$i++)
       "<option value='8' ".${'r'.$i.'_s8'}.">".t(Model)."</option>".
       "<option value='9' ".${'r'.$i.'_s9'}.">".t('DNS Name')."</option>".
       "<option value='10' ".${'r'.$i.'_s10'}.">".t(IPv4)."</option>";
+      "<option value='11' ".${'r'.$i.'_s11'}.">".t(IPv6)."</option>";
 }
 ?>
 <tr>
