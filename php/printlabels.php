@@ -51,6 +51,7 @@ if (isset($_POST['designaction']) && $_POST['designaction']=="savedesign") {
 if (!isset($initok)) {echo "do not run this script directly";exit;}
 
 ?>
+<script type="text/javascript" SRC="js/jquery.fix.clone.js"></script>
 <script>
 function ldata(rows,cols,lwidth,lheight, vpitch, hpitch, tmargin, bmargin, lmargin, rmargin,name, 
                border,padding,fontsize, headerfontsize,barcodesize, idfontsize,wantbarcode,wantheadertext,wantheaderimage,
@@ -152,8 +153,12 @@ $(document).ready(function() {
         alert('Select items from the list first');
 	return;
       }
-
+      //Important:
+      //Usage of js/jquery.fix.clone.js to correctly copy/clone select
       $("#selitemsfrm").attr("action", "php/printitemlabels_pdf.php");
+      $("#seldesignfrm").attr("action", "php/printitemlabels_pdf.php");
+      $('#selitemsfrm :input[isacopy]').remove();
+      $('#seldesignfrm :input').clone().hide().attr('isacopy','y').appendTo('#selitemsfrm');
       $('#selitemsfrm').submit();
     });
 
