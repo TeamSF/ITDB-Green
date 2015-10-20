@@ -553,7 +553,7 @@ for ($i=1;$i<9;$i++)
       "<option value='7' ".${'r'.$i.'_s7'}.">".t(Manufacturer)."</option>".
       "<option value='8' ".${'r'.$i.'_s8'}.">".t(Model)."</option>".
       "<option value='9' ".${'r'.$i.'_s9'}.">".t('DNS Name')."</option>".
-      "<option value='10' ".${'r'.$i.'_s10'}.">".t(IPv4)."</option>";
+      "<option value='10' ".${'r'.$i.'_s10'}.">".t(IPv4)."</option>".
       "<option value='11' ".${'r'.$i.'_s11'}.">".t(IPv6)."</option>";
 }
 ?>
