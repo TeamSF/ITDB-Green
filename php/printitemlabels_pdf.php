@@ -21,7 +21,7 @@ for ($i=0;$i<count($selitems);$i++)  {
 
 //$sql="SELECT items.id,model,sn,sn3,itemtypeid,dnsname,ipv4,ipv6,label, agents.title as agtitle FROM items,agents ".
 //     " WHERE agents.id=items.manufacturerid AND items.id in ($ids) order by itemtypeid, agtitle, model,sn,sn2,sn3";
-$sql="SELECT items.id,model,sn,sn3,itemtypeid,dnsname,ipv4,ipv6,label, agents.title as agtitle FROM items,agents ".
+$sql="SELECT items.id,model,sn,sn2,sn3,itemtypeid,dnsname,ipv4,ipv6,label, agents.title as agtitle FROM items,agents ".
      " WHERE agents.id=items.manufacturerid AND items.id in ($ids) order by items.id";
 $sth=db_execute($dbh,$sql);
 $idx=0;
@@ -63,42 +63,48 @@ for ($row=1;$row<=$rows;$row++) {
     $r=$sth->fetch(PDO::FETCH_ASSOC);
     if (!$r) break;
 
-    $idesc=$itypes[$r['itemtypeid']]['typedesc'];
-    $id=sprintf("%04d",$r['id']);
-    $dnsname=$r['dnsname'];
-    $ipv4=$r['ipv4'];
-    $ipv4=mb_substr($ipv4,0,15);
-    $ipv6=$r['ipv6'];
-    $agtitle=$r['agtitle'];
-    $model=$r['model'];
-    $label=$r['label'];
+    if(!$wantnotext) {
+        //$idesc=$itypes[$r['itemtypeid']]['typedesc'];
+        $id=sprintf("%04d",$r['id']);
+        $headertext=str_replace('_NL_',"\n",$headertext);
+        $sn=$r['sn'];
+        $sn2=$r['sn2'];
+        $sn3=$r['sn3'];
+        $label=$r['label'];
+        $agtitle=$r['agtitle'];
+        $model=$r['model'];
+        $dnsname=$r['dnsname'];
+        $ipv4=$r['ipv4'];
+        $ipv6=$r['ipv6'];
 
-    $desc="$agtitle/$model";
-    $desc=mb_substr($desc,0,37);
-    $desc=trim($desc);
-    $sn=strlen($r['sn'])>0?$r['sn']:$r['sn3'];
-
-    $labeltext="";
-    $labeltext.=sprintf("ID:$id\n");
-    if (strlen($label)) $labeltext.=sprintf("LBL:$label\n");
-
-    if (strlen($sn)) $labeltext.=sprintf("SN:$sn\n");
-
-    if (strlen($desc)) { $labeltext.=$desc."\n"; }
-
-    if (strlen($ipv4)) { $labeltext.="IPv4:$ipv4\n"; }
-    if (strlen($ipv6)) { $labeltext.="IPv6:$ipv6\n"; }
-
-    if (strlen($dnsname)) { 
-       $labeltext.="HName:$dnsname\n";
+        //Add label text for each row
+        $labeltext="";
+        $labeltext.=$headertext;
+        for ($i=1;$i<9;$i++)
+        {
+            $labeltext.="Line".$i." ";
+            if (${'row'.$i.'value'} == "0") $labeltext.=${'row'.$i.'text'}." ".$id."\n";
+            elseif (${'row'.$i.'value'} == "1") $labeltext.=${'row'.$i.'text'}." ".$headertext."\n";
+            elseif (${'row'.$i.'value'} == "2") $labeltext.=${'row'.$i.'text'}." ".$label."\n";
+            elseif (${'row'.$i.'value'} == "3") $labeltext.=${'row'.$i.'text'}." ".$sn."\n";
+            elseif (${'row'.$i.'value'} == "4") $labeltext.=${'row'.$i.'text'}." ".$sn2."\n";
+            elseif (${'row'.$i.'value'} == "5") $labeltext.=${'row'.$i.'text'}." ".$sn3."\n";
+            elseif (${'row'.$i.'value'} == "6") $labeltext.=${'row'.$i.'text'}." ".$agtitle." ".$model."\n";
+            elseif (${'row'.$i.'value'} == "7") $labeltext.=${'row'.$i.'text'}." ".$agtitle."\n";
+            elseif (${'row'.$i.'value'} == "8") $labeltext.=${'row'.$i.'text'}." ".$model."\n";
+            elseif (${'row'.$i.'value'} == "9") $labeltext.=${'row'.$i.'text'}." ".$dnsname."\n";
+            elseif (${'row'.$i.'value'} == "10") $labeltext.=${'row'.$i.'text'}." ".$ipv4."\n";
+            elseif (${'row'.$i.'value'} == "11") $labeltext.=${'row'.$i.'text'}." ".$ipv6."\n";
+            else $labeltext.=${'row'.$i.'text'}."\n";
+        }
     }
-    $labeltext=rtrim($labeltext);
+    else {
+        $headertext='';
+        $labeltext='';
+    }
 
-    if (!$wantheadertext)
-      $headertext="";
-
-    if (!$wantheaderimage) 
-      $image="";
+    if (!$wantheadertext) $headertext="";
+    if (!$wantheaderimage) $image="";
 
     if ($wantbarcode) {
       $barcode=$qrtext.$id;
@@ -108,19 +114,13 @@ for ($row=1;$row<=$rows;$row++) {
       $barcode="";
 	}
 
-    $headertext=str_replace('_NL_',"\n",$headertext);
-
     $nbw=0.30; //code39 narrow bar width (mm). 15+1 narrow bars/character (+1=spacing)
     $barcodewidth=((strlen($barcode)+3)*(15+2)+20)*$nbw;
     //code39:bh:(mm) barcode height must allow for 15 degrees of scanning ideally
     //code39:includes barcode text font width (about 3mm)
     $bh=max(0.15*$barcodewidth+3,16); //at least 15% of length
 
-	if ($wantnotext) {
-		$headertext='';
-		$labeltext='';
-	}
-    
+
 
     $pdf->Add_Label($headertext,$labeltext,$padding,$border,
                     $image,$imagewidth,$imageheight,
